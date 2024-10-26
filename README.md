@@ -1,50 +1,81 @@
-# React + TypeScript + Vite
+# 🏞️ WebCraft: A Web-Based Minecraft Clone
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to **WebCraft**, a Minecraft-inspired game built using React and TypeScript. Dive into a blocky world right from your browser!
 
-Currently, two official plugins are available:
+## 🌟 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Infinite World Generation**: Explore a procedurally generated world.
+- **Block Placing & Breaking**: Interact with various blocks like stone, dirt, and more.
+- **Day/Night Cycle**: Experience the passage of time with a dynamic lighting system.
+- **Optimized Performance**: Built with React and TypeScript for efficient gameplay.
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+These instructions will help you set up and run WebCraft on your local machine.
 
-- Configure the top-level `parserOptions` property like this:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Ensure you have the following installed:
+
+- **Node.js** (v14 or later)
+- **npm** or **yarn**
+
+### Installation
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/mr-vl/webcraft.git
+   cd webcraft
+   ```
+Install Dependencies
+
+Using npm:
+
+```bash
+npm install
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+Or using yarn:
+```bash
+yarn install
 ```
+Run the Development Server
+
+Using npm:
+```bash
+npm start
+```
+Or using yarn:
+```bash
+yarn start
+```
+Open your browser and navigate to http://localhost:3000 to start playing!
+
+📦 Build for Production
+To build the app for production, run:
+
+Using npm:
+```bash
+npm run build
+```
+Or using yarn:
+```bash
+yarn build
+```
+This will bundle the app into static files located in the build directory.
+
+🛠️ Technologies Used
+React: A JavaScript library for building user interfaces.
+TypeScript: A typed superset of JavaScript that compiles to plain JavaScript.
+<br><br>
+🤝 Contributing
+We welcome contributions! Submit a pull request with your updates
+
+📜 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+📞 Contact
+For questions or feedback, feel free to open an issue
+
+Enjoy crafting your world with WebCraft! 🛡️🗺️
