@@ -24,7 +24,19 @@ import {Entity} from "./Entity.tsx";
             return this.entities.filter(callback);
         }
 
+        public Add(entity: Entity, name?: string): void{
+            if(!name){
+                name = this.GenerateName();
+            }
 
+            this.entitiesMap[name] = entity;
+            this.entities.push(entity);
+
+            entity.SetParent(this);
+            entity.SetName(name);
+            entity.InitEntity();
+
+        }
 
 
 

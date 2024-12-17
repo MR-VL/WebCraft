@@ -9,7 +9,19 @@ export class Entity{
     private parent: EntityManager | null = null;
     private dead: boolean = false;
 
+    SetParent(parent: EntityManager):void{
+        this.parent = parent;
+    }
 
+    SetName(name: string):void{
+        this.name = name;
+    }
+
+    InitEntity(): void{
+        for(let k in this.components){
+            this.components[k].InitEntity();
+        }
+    }
 
 }
 
@@ -20,6 +32,6 @@ export class Component{
     }
 
 
-
+    InitEntity() {}
 }
 
