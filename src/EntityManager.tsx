@@ -38,6 +38,51 @@ import {Entity} from "./Entity.tsx";
 
         }
 
+        public SetActive(entity, bool){
+            const index = this.entities.indexOf(entity);
+            if(!bool){
+                if(index<0){
+                    return;
+                }
+                this.entities.splice(index,1);
+            }
+            else{
+                if (index >=0){
+                    return;
+                }
+                this.entities.push(entity);
+            }
+        }
+
+        public Update(timeElapsed){
+            const dead = [];
+            const alive = [];
+
+            for (let i = 0; i< this.entities.length; i++){
+                const entity = this.entities[i];
+                entity.Update(timeElapsed)
+
+                if(entity.dead){
+                    dead.push(entity);
+                }
+                else{
+                    alive.push(entity);
+                }
+
+                for(let i = 0; i<dead.length; i++){
+                    const ent = dead[i];
+                    delete this.entitiesMap[ent.name];
+
+                    ent.Destroy();
+                }
+
+                this.entities = alive;
+            }
+
+            return{
+                EntityManager:EntityManager
+            }
+        }
 
 
     }
