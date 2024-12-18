@@ -1,8 +1,10 @@
 import './App.css'
 import * as three from 'three'
 import {EntityManager} from './EntityManager.tsx'
-import {Entity} from "./Entity.tsx";
+import {entity} from "./Entity.tsx";
 import {threejs_component} from './threejs-component.tsx';
+import {defs} from './defs.tsx';
+
 class WebCraft{
     private entityManager: EntityManager;
 
@@ -12,13 +14,15 @@ class WebCraft{
     }
 
     public Initialize(){
-         this.entityManager = new EntityManager.EntityManager();
+         this.entityManager = new EntityManager();
 
     }
 
     public LoadControllers(){
-        const threejs = new Entity.Entity();
-        threejs.AddComponent(new threejs_component.ThreeJSController() )
+        const {Entity} = entity();
+        const threejs = new entity();
+
+        //threejs.AddComponent(new ThreeJSController() )
     }
 
 }

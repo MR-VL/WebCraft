@@ -1,9 +1,9 @@
-import {Entity} from "./Entity.tsx";
+import {entity} from "./Entity.tsx";
 
     export class EntityManager{
         private ids: number;
-        private entitiesMap: Record<string, Entity>;
-        private entities: Entity[];
+        private entitiesMap: Record<string, entity>;
+        private entities: entity[];
 
         constructor() {
             this.ids = 0;
@@ -16,15 +16,15 @@ import {Entity} from "./Entity.tsx";
             return "__name__ " + this.ids;
         }
 
-        public Get(name: string): Entity | undefined{
+        public Get(name: string): entity | undefined{
             return this.entitiesMap[name];
         }
 
-        public Filter(callback: (e:Entity) => boolean): Entity[]{
+        public Filter(callback: (e:entity) => boolean): entity[]{
             return this.entities.filter(callback);
         }
 
-        public Add(entity: Entity, name?: string): void{
+        public Add(entity: entity, name?: string): void{
             if(!name){
                 name = this.GenerateName();
             }
