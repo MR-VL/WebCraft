@@ -2,7 +2,6 @@ import './App.css'
 import * as three from 'three'
 import {EntityManager} from './EntityManager.tsx'
 import {entity} from "./Entity.tsx";
-import {threejs_component} from './threejs-component.tsx';
 import {defs} from './defs.tsx';
 
 class WebCraft{
@@ -22,7 +21,6 @@ class WebCraft{
         const {Entity} = entity();
         const threejs = new entity();
 
-        //threejs.AddComponent(new ThreeJSController() )
     }
 
 }
