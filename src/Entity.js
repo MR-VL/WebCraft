@@ -13,6 +13,21 @@ export const entity = (() => {
             this.parent = null;
             this.dead = false;
         }
+
+        SetParent(parent){
+            this.parent = parent;
+        }
+
+        SetName(name){
+            this.name = name;
+        }
+
+        InitEntity(){
+            for(let k in this.components){
+                this.components[k].InitEntity();
+            }
+        }
+
     }
 
 
