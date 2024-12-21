@@ -1,31 +1,31 @@
 export const entityManager = (() => {
-    class EntityManager{
+    class EntityManager {
         //private class declarations
         constructor() {
             this.ids = 0;
             this.entitiesMap = {};
-            this.entities={};
+            this.entities = {};
         }
 
-        GenerateName(){
+        GenerateName() {
             //creates entity names with incrementing ID
             this.ids += 1;
             return '__name__' + this.ids;
         }
 
-        Get(x){
+        Get(x) {
             //return the value at a given position
             return this.entitiesMap[x];
         }
 
-        Filter(block){
+        Filter(block) {
             return this.entities.filter(block);
         }
 
         //adds a new entity
-        Add(entity, name){
+        Add(entity, name) {
             //if no name is provided generate a new name
-            if(!name){
+            if (!name) {
                 name = this.GenerateName();
             }
             //map the name to the entity
@@ -41,14 +41,14 @@ export const entityManager = (() => {
         }
 
 
-        SetActive(entity, bool){
+        SetActive(entity, bool) {
             //determine if the entity already exists
             //if entity is found will return index
             //if it doesn't exist will return -1
             const index = this.entities.indexOf(entity);
 
             //mark inactive
-            if(!bool) {
+            if (!bool) {
                 //if entity is not in the entities just return nothing more needed to do
                 if (index < 0) {
                     return;
@@ -58,15 +58,42 @@ export const entityManager = (() => {
                 this.entities.splice(index, 1);
             }
             //mark active
-            else{
+            else {
                 //if the entity is already in entities return
-                if(index >= 0){
+                if (index >= 0) {
                     return;
                 }
                 //if not add it to the entities
                 this.entities.push(entity);
             }
         }
+        Update(timeElapsed){
+            const dead = [];
+            const alive = [];
+
+            for(let i=0; i< this.entities.length; ++i){
+                const entity = this.entities[i];
+
+                entity.Update(timeElapsed);
+
+                if(entity.dead){
+                    dead.push(entity);
+                }
+                else{
+                    alive.push(entity);
+                }
+            }
+
+            for(let i = 0; i<dead.length; ++i){
+                const entity = dead[i];
+                delete this.entitiesMap[entity.name];
+                entity.destroy();
+            }
+            this.entities = alive;
+        }
     }
 
-})
+    return{
+        EntityManager:EntityManager
+    };
+})();
