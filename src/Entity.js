@@ -27,15 +27,18 @@ export const entity = (() => {
         }
 
         InitEntity(){
+            //loops through and calls the func to init each component
             for(let k in this.components){
                 this.components[k].InitEntity();
             }
         }
 
         Destroy(){
+            //goes over each component and calls the destroy function to free up memory
             for(let k in this.components){
                 this.components[k].Destroy();
             }
+            //set fields to null since component was destroid
             this.components = null;
             this.parent = null;
             this.handlers = null;
@@ -49,6 +52,28 @@ export const entity = (() => {
             this.dead = true;
         }
 
+        RegisterHandler(name, handler){
+            //adds the name to the handlers
+            if(!(name in this.handlers)){
+                this.handlers[name] = [];
+            }
+            //pushes name to handler
+            this.handlers[name].push(handler);
+        }
+
+        get Manager(){
+            //parent manages all subs
+            return this.parent;
+        }
+
+        AddComponent(component){
+            //pass current obj to set it as parent
+            component.SetParent(this);
+            //store name and associate it with val
+            this.components[component.name] = component;
+            //initialize it
+            component.InitComponent();
+        }
     }
 
     class Component{
