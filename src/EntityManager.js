@@ -13,9 +13,9 @@ export const entityManager = (() => {
             return '__name__' + this.ids;
         }
 
-        Get(x) {
-            //return the value at a given position
-            return this.entitiesMap[x];
+        Get(name) {
+            //return the value at a given position with name
+            return this.entitiesMap[name];
         }
 
         Filter(block) {
@@ -68,14 +68,18 @@ export const entityManager = (() => {
             }
         }
         Update(timeElapsed){
+            //takes time since last update
             const dead = [];
             const alive = [];
 
             for(let i=0; i< this.entities.length; ++i){
+                // get current entity from array
                 const entity = this.entities[i];
 
+                //loop through and determine if each entity is alive or dead
                 entity.Update(timeElapsed);
 
+                //determine if alive or dead and store appropriately
                 if(entity.dead){
                     dead.push(entity);
                 }
@@ -84,11 +88,16 @@ export const entityManager = (() => {
                 }
             }
 
+            //loop through the dead array
             for(let i = 0; i<dead.length; ++i){
+                //grab current index
                 const entity = dead[i];
+                //delete the name from the entities map
                 delete this.entitiesMap[entity.name];
+                //destroy the entity
                 entity.destroy();
             }
+            //only include the alive entities
             this.entities = alive;
         }
     }
