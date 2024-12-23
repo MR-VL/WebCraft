@@ -74,6 +74,55 @@ export const entity = (() => {
             //initialize it
             component.InitComponent();
         }
+
+        GetComponent(name){
+            return this.components[name];
+        }
+        FindEntity(name){
+            return this.parent.Get(name);
+        }
+
+        BroadCast(message){
+            if(!(message.topic in this.handlers)){
+                return;
+            }
+
+            for (let curHandler of this.handlers[message.topic]){
+                curHandler(message);
+            }
+        }
+
+        SetPosition(position){
+            this.position.copy(position);
+            this.BroadCast({
+                topic: 'update position',
+                value: this.position
+            })
+        }
+
+        get Postition(){
+            return this.position;
+        }
+
+        SetQuaternion(rotation){
+            this.rotation.copy(rotation);
+
+            this.BroadCast({
+                topic: 'update.rotation',
+                value: this.rotation
+            })
+        }
+
+        get Quaternion(){
+            return this.rotation;
+        }
+
+        Update(timeElapsed){
+            for(let k in this.components){
+                this.components[k].Update(timeElapsed);
+            }
+        }
+
     }
 
     class Component{
@@ -113,7 +162,7 @@ export const entity = (() => {
         }
 
         BroadCast(message){
-             this.parent.Broadcast(message);
+             this.parent.BroadCast(message);
         }
 
         Update(_){}
