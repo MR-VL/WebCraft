@@ -38,7 +38,7 @@ export const entity = (() => {
             for(let k in this.components){
                 this.components[k].Destroy();
             }
-            //set fields to null since component was destroid
+            //set fields to null since component was destroyed
             this.components = null;
             this.parent = null;
             this.handlers = null;
@@ -100,7 +100,7 @@ export const entity = (() => {
             })
         }
 
-        get Postition(){
+        get Position(){
             return this.position;
         }
 
