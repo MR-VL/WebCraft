@@ -29,8 +29,33 @@ export const math = (function(){
             // x* multiplies it by desired amount
             // +a adds the original starting point so it coincides with original range
             return x* (b-a) + a;
-        }
+        },
 
+        smoothstep: function (x,a,b){
+            //slope formula that has smooth at 0 and 1 for entry and exit
+            x = x * x * (3.0-2.0 * x);
+            // (b-a) calculate range
+            //x* scale the value
+            //+a adds original so it starts from there
+            return x * (b-a) + a;
+        },
+
+        smootherstep: function(x, a, b){
+            // even smoother interpretation of smoothstep func
+            x = x * x * x * (x * (x * 6 - 15) + 10);
+            return x * (b-a) + a;
+        },
+
+        clamp: function(x, a, b){
+            //ensures that value of x is clamped between range of a and b
+            // if x < a return a
+            // x greater then b return b
+            return Math.min(Math.max(x,a), b);
+        },
+
+        sat: function(x){
+
+        }
 
     };
 })();
