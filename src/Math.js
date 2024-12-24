@@ -54,8 +54,16 @@ export const math = (function(){
         },
 
         sat: function(x){
+            //limit range between 0 and 1
+            //if x < 0 return 0
+            //if x>1 return 1
+            // if between return x val
+            return Math.min(Math.max(x, 0.0), 1.0);
+        },
 
+        inRange: (x, a, b) =>{
+            //returns bool if in range
+            return x >= a && x<=b;
         }
-
     };
 })();
