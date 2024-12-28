@@ -25,4 +25,17 @@ export const foliageDefs = (() => {
 
     }
 
+    function sdCappedCylinder(p, a, b, r){
+        const ba = b.clone().sub(a);
+        const pa = p.clone().sub(a);
+        const baba = ba.dot(ba);
+        const papa = pa.dot(ba);
+        const x = (pa.clone().multiplyScalar(baba).sub(ba.clone().multiplyScalar(paba))).length() - r * baba;
+        const y = Math.abs(paba - baba * 0.5) - baba * 0.5;
+        const x2 = x *x;
+        const y2 = y*y;
+        const d = (MAth.max(x,y) < 0.0) ? -Math.min(x2,y2): (((x>0.0)? x2:0.0) + ((y>0.0)? y2:0.0));
+        return Math.sign(d) * Math.sqrt(Math.abs(d)) / baba;
+    }
+
 })();
