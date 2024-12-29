@@ -19,9 +19,31 @@ export const voxelBlockBuilder = (() => {
     const stoneColor = new THREE.Color(0x9d9d9d);
     const GrassColor = new THREE.Color(0x7cbd6b);
 
+    function biome(elevation, moisture){
+        if (elevation < oceanLevel){
+            return 'sand';
+        }
+        if(elevation < beachLevel){
+            return 'sand';
+        }
+
+        if (elevation > snowLevel){
+            return 'snow';
+        }
+
+        if (elevation > mountainLevel && moisture < 0.2){
+            return 'stone';
+        }
+
+        //default will probably have to change later
+        return 'grass';
+    }
+
+
+
+
     return{
         VoxelBlockBuilder: VoxelBuilderThreadedWorker,
     }
-
 
 })();
