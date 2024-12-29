@@ -63,6 +63,42 @@ export const foliageDefs = (() => {
     const ZAxis = new THREE.Vector3(0,0,1);
     const Origin = new THREE.Vector3(0,0,0);
 
+    class SDF{
+        constructor(position){
+            this.sdfs = [];
+            this.position = position.clone();
+            this.aabb = new THREE.Box3(this.position.clone(), this.position.clone())
+        }
+
+        get AABB(){
+            return this.aabb;
+        }
+
+        AddSphere(type, origin, radius){
+            tmpS1.set(this.position.clone(), radius);
+            tmpS1.translate(origin);
+            tmpS1.getBoundingBox(tmpB1);
+
+            this.aabb.union(tmpB1);
+            const ori = origin.clone();
+
+            this.sdfs.push((position) => {
+                tmp1.copy(position);
+                tmp1.sub(ori);
+                tmp1.sub(this.position);
+
+                if (sdSphere(tmp1, radius) < 0){
+                    return type;
+                }
+                return null;
+            });
+        }
+
+
+
+
+    }
+
     return {
 
 
