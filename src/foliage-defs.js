@@ -38,4 +38,33 @@ export const foliageDefs = (() => {
         return Math.sign(d) * Math.sqrt(Math.abs(d)) / baba;
     }
 
+    function sdSphere(position, radius){
+        return position.length() - radius;
+    }
+
+    const tmp1 = new THREE.Vector3();
+
+    //box
+    const tmpB1 = new THREE.Box3;
+    const tmpB2 = new THREE.Box3;
+    const tmpB3 = new THREE.Box3;
+
+    //sphere
+    const tmpS1 = new THREE.Sphere();
+
+    //quaternion defs
+    const tmpQ = new THREE.Quaternion();
+    const tmpQ1 = new THREE.Quaternion();
+    const tmpQ2 = new THREE.Quaternion();
+
+    //axis defs
+    const XAxis = new THREE.Vector3(1,0,0);
+    const YAxis = new THREE.Vector3(0,1,0);
+    const ZAxis = new THREE.Vector3(0,0,1);
+    const Origin = new THREE.Vector3(0,0,0);
+
+    return {
+
+
+    }
 })();
