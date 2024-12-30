@@ -329,10 +329,49 @@ export const voxelBlockBuilder = (() => {
         }
 
         Get(x, z){
+            const height = this.NoiseTerrain.Get(x, 0.0, z) * this.NoiseHeight.Get(x, 0.0, z);
+            const elevation = Math.floor(height);
+            const roll = this.NoiseRoll.Get(x, 0.0, z);
+            const heightFactor = (elevation / 32.0);
 
+            let type = 'stone';
+            if (roll > heightFactor){
+                type = 'dirt';
+            }
 
+            return [type, elevation];
+        }
+    }
+
+    class TerrainGeneratorSand{
+        constructor(params){
+            this.params = params;
+
+            this.NoiseTerrain = new noise.Noise({
+                seed: 4,
+                octaves: 4,
+                scale: 500.005,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 6,
+                height: 1,
+                range: [-1, 1]
+            })
+
+            this.NoiseHeight = new noise.Noise({
+                seed: 4,
+                octaves: 3,
+                scale: 500.005,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 64,
+            })
         }
 
+        Get(x, z){
+            const noise1 = [this.NoiseTerrain.Get(x, 0.0, z), this.NoiseTerrain.Get(x, 1.0, z)];
+        }
 
     }
 
