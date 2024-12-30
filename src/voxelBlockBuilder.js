@@ -19,6 +19,8 @@ export const voxelBlockBuilder = (() => {
     const stoneColor = new THREE.Color(0x9d9d9d);
     const GrassColor = new THREE.Color(0x7cbd6b);
 
+    const tmpV1 = new THREE.Vector3();
+
     function biome(elevation, moisture){
         if (elevation < oceanLevel){
             return 'sand';
@@ -39,6 +41,29 @@ export const voxelBlockBuilder = (() => {
         return 'grass';
     }
 
+    function biomeDemo(elevation, moisture, roll){
+        if (elevation < oceanLevel){
+            return 'sand';
+        }
+        if (elevation < beachLevel){
+            return 'sand';
+        }
+
+        if (elevation > snowLevel * roll){
+            return 'snow';
+        }
+
+        if (elevation > mountainLevel * roll){
+            return 'stone';
+        }
+
+        if (moisture < 0.1){
+            return 'sand';
+        }
+
+        return 'grass';
+    }
+
 
     class TerrainGeneratorFlat{
         constructor(){}
@@ -52,7 +77,7 @@ export const voxelBlockBuilder = (() => {
         }
     }
 
-    const NPerlin = new noise.Noise({
+    const NoisePerlin = new noise.Noise({
         seed: 6,
         octaves:1,
         scale: 128,
@@ -63,6 +88,50 @@ export const voxelBlockBuilder = (() => {
     })
 
 
+    class TerrainGeneratorMoon{
+        constructor(params) {
+            this.params = params;
+
+
+            this.NoiseMoon = new noise.Noise({
+                seed: 4,
+                octaves: 5,
+                scale: 1024,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 4,
+                height: 1
+            })
+
+            this.NoiseCraters = new noise.Noise({
+                seed: 7,
+                octaves: 1,
+                scale: 0.99,
+                persistence: 0.5,
+                lacunarity: 0.5,
+                exponentiation: 1,
+                height: 1
+            })
+            this.InitCraters();
+        }
+
+        InitCraters() {
+            this.craters = [];
+            for(let x = -this.params.dimensions.x * 10; x <= this.params.dimensions.x *10; x+=8){
+                for(let z = -this.params.dimensions.z *10; z<= this.params.dimensions.z *10; z+=8 ){
+                    const xPos = x + this.params.offset.x;
+                    const zPos = z + this.params.offset.z;
+
+                    const roll = this.NoiseCraters.Get(xPos, 0.0, zPos);
+
+                    if(roll > 0.95){
+                        const craterSize = Math.min((this.NoiseCraters.Get(xPos, 1.0, zPos) ** 4.0) *100, 50.0) + 4.0;
+
+                    }
+                }
+            }
+        }
+    }
 
 
     return{
