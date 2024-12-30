@@ -209,7 +209,25 @@ export const voxelBlockBuilder = (() => {
             })
         }
 
+        Biome(x, z, elevation, moisture){
+            const mp = math.smootherstep(moisture, 0, 1);
+            const ep = math.smootherstep(elevation / 128.0, 0, 1);
 
+            const m1e1 = ['sand', 0];
+            const m1e2 = this.moon.Get(x,z);
+            const m2e1 = ['grass', 0];
+            const m2e2 = ['stone', 0];
+
+            const r1 = math.lerp(mp, m1e1[1], m2e1[1]);
+            const r2 = math.lerp(mp, m1e2[1], m2e2[1]);
+            const r3 = math.lerp(ep, r1, r2);
+
+            const f1 = mp < 0.5 ? m1e1[0] : m2e1[0];
+            const f2 = mp < 0.5 ? m1e2[0] : m2e2[0];
+            const f3 = ep < 0.5 ? f1 : f2;
+
+            return [f3, Math.floor(r3)];
+        }
 
 
     }
