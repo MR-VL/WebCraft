@@ -158,6 +158,59 @@ export const voxelBlockBuilder = (() => {
             }
             return ['moon', Math.round(totalHeight)];
         }
+    }
+    class TerrainGeneratorWorld{
+        constructor(params) {
+            this.params = params;
+
+            this.moon = new TerrainGeneratorMoon(params);
+            this.grass = new TerrainGeneratorGrass(params);
+            this.sand = new TerrainGeneratorSand(params);
+            this.rocky = new TerrainGeneratorRocky(params);
+
+            this.NoiseHeight = new noise.Noise({
+                seed: 100,
+                octaves: 1,
+                scale: 4096,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 32
+            });
+
+            this.NoiseRoll = new noise.Noise({
+                seed: 200,
+                octaves: 1,
+                scale: 8,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 1
+            })
+
+            this.Noise = new noise.Noise({
+                seed: 4,
+                octaves: 0.99,
+                scale: 1,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 4
+            })
+
+            this.NoiseTypes = new noise.Noise({
+                seed: 8,
+                octaves: 0.99,
+                scale: 1,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 4
+            })
+        }
+
+
+
 
     }
 
