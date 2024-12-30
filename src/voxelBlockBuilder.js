@@ -229,7 +229,66 @@ export const voxelBlockBuilder = (() => {
             return [f3, Math.floor(r3)];
         }
 
+        Get2(x, z){
+            const height = this.NoiseHeight.Get(x, 0.0, z);
+            const elevation = Math.floor(height);
+            const moisture = this.NoiseMoisture.Get(x, 0.0, z);
+            return this.Biome(x, z, elevation, moisture);
+        }
 
+        ChooseTerrainType(x,z){
+            const cellSize = 1024.0;
+            const cellIndex = [Math.floor(x/cellSize), Math.floor(z/cellSize)];
+            const cellPosition = [cellIndex[0] * cellSize, cellIndex[1] * cellSize];
+            const cellCenter = [Math.round(this.Noise.Get(cellIndex[0], 0.0, cellIndex[1]) * cellSize),
+                                        Math.round(this.Noise.Get(cellIndex[0], 1.0, cellIndex[1]) * cellSize)];
+            cellCenter[0] = cellPosition[0] + cellSize * 0.5;
+            cellCenter[1] = cellPosition[1] + cellSize * 0.5;
+
+            const distance = ((x-cellCenter[0]) ** 2 + (z-cellCenter[1]) ** 2) ** 0.5;
+            const fallOff = math.sat((distance - cellSize * 0.25) / (cellSize * 0.25));
+            const biomeType = Math.round(this.NoiseTypes.Get(cellIndex[0], 0.0, cellIndex[1]));
+
+            let result = null;
+            //TODO possible type mismatch
+            if(biomeType === 0){
+                result = this.rocky.Get(x,z);
+            }
+            else if (biomeType === 1){
+                result = this.sand.Get(x,z);
+            }
+            else if (biomeType === 2){
+                result = this.grass.Get(x,z);
+            }
+            else if (biomeType === 3){
+                result = ['snow', 15];
+            }
+            else if (biomeType === 4){
+                result = this.moon.Get(x,z)
+            }
+            else{
+                result = this.grass.Get(x,z);
+            }
+
+            result[1] = math.lerp(math.smootherstep(fallOff, 0.0, 1.0), result[1], 0.0);
+            const roll = this.NoiseRoll.Get(x, 2.0, z);
+
+            const typeFallOff = math.sat((distance - cellSize * 0.375) / (cellSize * 0.125));
+
+            if(typeFallOff > roll){
+                result[0] = 'grass';
+            }
+            if(result[1] < oceanLevel){
+                result[0] = 'sand';
+            }
+            return result;
+        }
+
+        Get(x,z){
+            const result = this.ChooseTerrainType(x,z);
+            result[1] = Math.round(result[1]);
+            return result;
+        }
     }
 
 
