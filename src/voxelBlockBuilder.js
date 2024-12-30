@@ -126,11 +126,39 @@ export const voxelBlockBuilder = (() => {
 
                     if(roll > 0.95){
                         const craterSize = Math.min((this.NoiseCraters.Get(xPos, 1.0, zPos) ** 4.0) *100, 50.0) + 4.0;
-
+                        this.craters.push([new THREE.Vector3(xPos, 0, zPos), new THREE.Vector3(xPos, 0, zPos), craterSize]);
                     }
                 }
             }
         }
+
+        Get(x, z){
+            const n1 = this.NoiseMoon.Get(x, z, 10.0);
+            const n2 = this.NoiseMoon.Get(x, z, 20.0);
+            const normalizedHeight = Math.round(this.NoiseMoon.Get(x+n1. z+n2, 0.0) * 64);
+
+            let totalHeight = normalizedHeight;
+
+            for(let i =0; i < this.craters.length; i++){
+                const position = new THREE.Vector3(x, 0, z);
+                const [crater, radius] = this.craters[i];
+                const distance = crater.distanceTo(position);
+                const craterWidth = radius;
+
+                if(distance < craterWidth * 2){
+                    const rimWidth = radius /4;
+                    const rimStart = Math.abs(distance - (craterWidth - rimWidth));
+                    const rimFactor = math.sat(rimStart/rimWidth);
+                    const rimHeightFactor = 1.0 - rimFactor ** 0.5;
+                    const rimHeight = radius / 10;
+
+                    const craterFactor = 1.0 - math.sat((distance-(craterWidth-rimWidth * 2 )) / rimWidth) ** 2;
+                    totalHeight += rimHeightFactor * rimHeight + craterFactor * -(rimHeight * 2.0);
+                }
+            }
+            return ['moon', Math.round(totalHeight)];
+        }
+
     }
 
 
