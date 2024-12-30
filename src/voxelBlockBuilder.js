@@ -291,6 +291,50 @@ export const voxelBlockBuilder = (() => {
         }
     }
 
+    class TerrainGeneratorRocky{
+        constructor(params) {
+            this.params = params;
+
+            this.NoiseTerrain = new noise.Noise({
+                seed: 9,
+                octaves: 6,
+                scale: 500.005,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 6,
+                height: 64,
+                ridged: true
+            })
+
+            this.NoiseRoll = new noise.Noise({
+                seed: 200,
+                octaves: 2,
+                scale: 8,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 1,
+            })
+
+            this.NoiseHeight = new noise.Noise({
+                seed: 100,
+                octaves: 1,
+                scale: 64,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 1,
+                range: [0.25, 1]
+            })
+        }
+
+        Get(x, z){
+
+
+        }
+
+
+    }
 
     return{
         VoxelBlockBuilder: VoxelBuilderThreadedWorker,
