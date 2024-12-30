@@ -40,6 +40,29 @@ export const voxelBlockBuilder = (() => {
     }
 
 
+    class TerrainGeneratorFlat{
+        constructor(){}
+
+        Get(x, z){
+            // TODO possible type conversion error here
+            if (x === 0 && z === 0){
+                return ['grass', 4097];
+            }
+            return ['grass', 0];
+        }
+    }
+
+    const NPerlin = new noise.Noise({
+        seed: 6,
+        octaves:1,
+        scale: 128,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        exponentiation: 4,
+        height: 32
+    })
+
+
 
 
     return{
