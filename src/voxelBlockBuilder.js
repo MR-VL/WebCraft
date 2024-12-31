@@ -565,7 +565,7 @@ export const voxelBlockBuilder = (() => {
 
             if (GameDefs.useFlatTerrain){
                 this.terrainGenerator = new TerrainGeneratorFlat(params);
-                //test for nightfall
+                //test for nightfall TODO night
                 //this.terrainGenerator = new TerrainGeneratorMoon(params);
             }
         }
@@ -577,6 +577,74 @@ export const voxelBlockBuilder = (() => {
         Key(x, y, z){
             return x + '.' + y + '.' + z;
         }
+
+        PruneHiddenVoxels(cells){
+            if(GameDefs.skipPruning){
+                return Object.assign({}, cells);
+            }
+
+            const prunedVoxels = {};
+
+            for(let k in cells){
+                const currentCell = cells[k];
+
+                const k1 = this.Key(
+                    currentCell.position[0] + 1,
+                    currentCell.position[1],
+                    currentCell.position[2]
+                );
+
+                const k2 = this.Key(
+                    currentCell.position[0] - 1,
+                    currentCell.position[1],
+                    currentCell.position[2]
+                );
+
+                const k3 = this.Key(
+                    currentCell.position[0],
+                    currentCell.position[1] + 1,
+                    currentCell.position[2]
+                );
+
+                const k4 = this.Key(
+                    currentCell.position[0],
+                    currentCell.position[1] - 1,
+                    currentCell.position[2]
+                );
+
+                const k5 = this.Key(
+                    currentCell.position[0],
+                    currentCell.position[1],
+                    currentCell.position[2] + 1
+                );
+
+                const k6 = this.Key(
+                    currentCell.position[0],
+                    currentCell.position[1],
+                    currentCell.position[2] - 1
+                );
+
+                const keys = [k1, k2, k3, k4, k5, k6];
+                let visible = false;
+
+                for (let i = 0; i < keys.length; ++i) {
+                    const faceHidden = (keys[i] in cells);
+                    //todo line below might be redundant
+                    currentCell.facesHidden[i] = faceHidden;
+
+                    if (!faceHidden) {
+                        visible = true;
+                    }
+
+                    if (visible) {
+                        prunedVoxels[k] = currentCell;
+                    }
+                }
+            }
+            return prunedVoxels;
+        }
+
+
 
 
     }
