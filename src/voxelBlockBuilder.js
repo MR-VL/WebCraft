@@ -514,7 +514,72 @@ export const voxelBlockBuilder = (() => {
         }
     }
 
+    class VoxelBuilderThreadedWorker{
+        constructor(){
+            this.Create();
+        }
 
+        Create(){
+            const pxGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            pxGeometry.rotateY(Math.PI /  2);
+            pxGeometry.translate(0.5, 0, 0);
+
+            const nxGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            nxGeometry.rotateY(-Math.PI /  2);
+            nxGeometry.translate(-0.5, 0, 0);
+
+            const pyGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            pyGeometry.rotateX(-Math.PI /  2);
+            pyGeometry.translate(0.5, 0, 0);
+
+            const nyGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            nyGeometry.rotateX(Math.PI /  2);
+            nyGeometry.translate(0, -0.5, 0);
+
+            const pzGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            pzGeometry.translate(0, 0, 0.5);
+
+            const nzGeometry = new THREE.PlaneBufferGeometry(1, 1);
+            nzGeometry.rotateX(Math.PI);
+            nzGeometry.translate(0,0, -0.5)
+
+            const invertUvs = [pxGeometry, nxGeometry, pzGeometry, nzGeometry];
+
+            for(let geometry of invertUvs){
+                for(let i = 0; i< geometry.attributes.uv.array.length; i+=2){
+                    geometry.attributes.uv.array[i+1] = 1.0 - geometry.attributes.uv.array[i+1];
+                }
+            }
+
+            this.geometries = [
+                pxGeometry, nxGeometry,
+                pyGeometry, nyGeometry,
+                pzGeometry, nyGeometry
+            ];
+        }
+
+        Init(params){
+            this.params = params;
+            this.params.offset = new THREE.Vector3(...params.offset);
+            this.params.dimensions = new THREE.Vector3(...params.dimensions);
+
+            if (GameDefs.useFlatTerrain){
+                this.terrainGenerator = new TerrainGeneratorFlat(params);
+                //test for nightfall
+                //this.terrainGenerator = new TerrainGeneratorMoon(params);
+            }
+        }
+
+        GenerateNoise(x, y){
+            return this.terrainGenerator.Get(x, y);
+        }
+
+        Key(x, y, z){
+            return x + '.' + y + '.' + z;
+        }
+
+
+    }
 
     return{
         VoxelBlockBuilder: VoxelBuilderThreadedWorker,
