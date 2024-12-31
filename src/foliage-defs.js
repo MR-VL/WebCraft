@@ -293,12 +293,70 @@ export const foliageDefs = (() => {
         return treeSDF;
     }
 
+    function PALMTREE(xPos, yPos, zPos){
+        let noiseID = 100;
+        const treeSDF = new SDF(new THREE.Vector3(xPos, yPos, zPos));
+        const angle1 = (0.01 + noiseFoliage.Get(xPos, noiseID++, zPos) * 0.02) * 2 * Math.PI;
+        const angle2 = noiseFoliage.Get(xPos, noiseID++, zPos) * 2 * Math.PI;
+
+        const AddLeaf = (base, height, width, rotation, level) => {
+            if(level > 7){
+                return;
+            }
+            const branchEnd = new THREE.Vector3(4, 0, 0);
+            const angle1 = -0.75 * 2 * Math.PI;
+
+            branchEnd.applyQuaternion(rotation);
+            branchEnd.add(base);
+            treeSDF.AddCappedCone('treeLeaves', origin, base, branchEnd, width, width);
+
+            tmpQ1.setFromAxisAngle(ZAxis, angle1);
+            tmpQ.copy(rotation);
+            tmpQ.multiply(tmpQ1);
+            AddLeaf(branchEnd.clone(), height, width, tmpQ.clone(), level+1);
+        }
+
+        const AddBranch = (base, height, width, rotation, level) => {
+            width = Math.max(width, 1);
+            if(level > 3){
+                AddLeaf(base, height, 1, new THREE.Quaternion(), level);
+
+                tmpQ2.setFromAxisAngle(YAxis, 0.33*2.0*Math.PI);
+                AddLeaf(base, height, 1, tmpQ2.clone(), level)
+
+                tmpQ2.setFromAxisAngle(YAxis, 0.66*2.0*Math.PI);
+                AddLeaf(base, height, 1, tmpQ2.clone(), level);
+                return;
+            }
+
+            const branchEnd = new THREE.Vector3(0, height, 0);
+            const angle1 = (0.05 + noiseFoliage.Get(xPos, noiseID++, zPos) * 0.02) * 2 * Math.PI;
+
+            branchEnd.applyQuaternion(rotation);
+            branchEnd.add(base);
+            treeSDF.AddCappedCone('treeBark', origin, base, branchEnd, width, width*0.6);
+
+            tmpQ1.setFromAxisAngle(XAxis, angle1);
+            tmpQ.copy(rotation);
+            tmpQ.multiply(tmpQ1);
+            AddBranch(branchEnd.clone(), height*0.75, width*0.75, tmpQ.clone(), level+1);
+        }
+
+        tmpQ1.setFromAxisAngle(XAxis, angle1);
+        tmpQ2.setFromAxisAngle(YAxis, angle2);
+        tmpQ.copy(tmpQ2);
+        tmpQ.multiply(tmpQ1);
+        AddBranch(new THREE.Vector3(0, -5, 0), 15, 2, tmpQ.clone(), 1)
+
+        return treeSDF;
+    }
 
 
 
     return {
         TREE1: TREE1,
         TREE2: TREE2,
+        PALMTREE: PALMTREE,
         SPHERE: SPHERE,
         CONE1: CONE1,
     }
