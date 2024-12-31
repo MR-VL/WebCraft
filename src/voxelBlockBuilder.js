@@ -365,14 +365,89 @@ export const voxelBlockBuilder = (() => {
                 persistence: 0.5,
                 lacunarity: 2.0,
                 exponentiation: 1,
-                height: 64,
+                height: 64
             })
         }
 
         Get(x, z){
             const noise1 = [this.NoiseTerrain.Get(x, 0.0, z), this.NoiseTerrain.Get(x, 1.0, z)];
+            const height = this.NoiseHeight.Get(x + noise1[0], 0.0, z + noise1[1]);
+            const elevation = Math.floor(height);
+            return ['sand', elevation];
+        }
+    }
+
+    class TerrainGeneratorGrass{
+        constructor(params){
+            this.params = params;
+
+            this.NoiseTerrain = new noise.Noise({
+                seed: 4,
+                octaves: 6,
+                scale: 4096,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 6,
+                height: 1
+            })
+
+            this.NoiseHeight = new noise.Noise({
+                seed: 4,
+                octaves: 3,
+                scale: 4096,
+                persistence: 0.5,
+                lacunarity: 0.5,
+                exponentiation: 1,
+                height: 512
+            })
+
+            this.NoisePlateaus  = new noise.Noise({
+                seed: 5,
+                octaves: 4,
+                scale: 512,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 2,
+                height: 1
+            })
+
+            this.NoisePlateausNumber = new noise.Noise({
+                seed: 6,
+                octaves: 4,
+                scale: 1024,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 1,
+                height: 20
+            })
+
+            this.NoiseMoisture = new noise.Noise({
+                seed: 3,
+                octaves: 3,
+                scale: 512,
+                persistence: 0.5,
+                lacunarity: 2.0,
+                exponentiation: 2,
+                height: 1
+            })
         }
 
+        Get(x, y){
+            const normalizedHeight = this.NoiseTerrain.Get(x, y, 0.0);
+            const areaHeight = this.NoiseHeight.Get(x, y, 0);
+            let variableHeight = areaHeight * normalizedHeight;
+
+            if(this.NoisePlateaus.Get(x, y, 0.0) > 0.25){
+                const numPlateaus = Math.round(10 + this.NoisePlateaus.Get(x, y, 0));
+                const plateauHeight = Math.round(areaHeight / numPlateaus);
+                variableHeight = Math.round(variableHeight / plateauHeight) * plateauHeight;
+            }
+
+            const elevation = Math.floor(variableHeight);
+            const moisture = this.NoiseMoisture.Get(x, y, 0.0);
+
+            return [biome(elevation, moisture), elevation];
+        }
     }
 
     return{
