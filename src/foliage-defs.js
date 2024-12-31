@@ -167,8 +167,42 @@ export const foliageDefs = (() => {
         //TODO leaf pos
 
         const treeSDF = new SDF(new THREE.Vector3(xPos, yPos, zPos));
+        treeSDF.AddCappedCone(
+            'treeBark',
+            new THREE.Vector3(),
+            new THREE.Vector3(0, -2, 0),
+            trunkEnd,
+            3, 0.5
+        );
 
+        treeSDF.AddCappedCone(
+            'treeBark',
+            new THREE.Vector3(),
+            new THREE.Vector3(0, 4, 0),
+            rootEnd1,
+            1, 1
+        );
 
+        treeSDF.AddCappedCone(
+            'treeBark',
+            new THREE.Vector3(),
+            new THREE.Vector3(0, 4, 0),
+            rootEnd2,
+            2, 1
+        );
+
+        treeSDF.AddCappedCone(
+            'treeBark',
+            new THREE.Vector3(),
+            new THREE.Vector3(0, 4, 0),
+            rootEnd3,
+            2, 1
+        );
+
+        treeSDF.AddSphere('treeLeaves', trunkEnd, leavesRadius);
+        // todo more leaves per tree
+
+        return treeSDF;
     }
 
 

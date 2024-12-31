@@ -644,6 +644,22 @@ export const voxelBlockBuilder = (() => {
             return prunedVoxels;
         }
 
+        CreateFoliageSDFS(){
+            const sdfs = new SDFList();
+
+            if(GameDefs.hardcodedFoliageEnabled){
+                const xPos = 10;
+                const yPos = 0;
+                const zPos = 10;
+
+                //TODO add more foliage
+
+                sdfs.Add(foliageDefs.TREE1(19568, 0, 1608));
+
+            }
+
+        }
+
 
 
 
