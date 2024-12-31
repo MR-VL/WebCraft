@@ -145,6 +145,19 @@ export const foliageDefs = (() => {
         height: 1
     })
 
+    function SPHERE(xPos, yPos, zPos, radius){
+        const treeSDF = new SDF(new THREE.Vector3(xPos, yPos, zPos));
+        treeSDF.AddSphere('stone', new THREE.Vector3(), radius);
+        return treeSDF;
+    }
+
+    function CONE1(xPos, yPos, zPos){
+        const treeSDF = new SDF(new THREE.Vector3(xPos, yPos, zPos));
+        treeSDF.AddCappedCone('treeBark', new THREE.Vector3(), new THREE.Vector3(),
+            new THREE.Vector3(0, 20, 0), 5, 5);
+        return treeSDF;
+    }
+
     function TREE1(xPos, yPos, zPos){
         // TODO dynamic generation of height and lean
         const height = 15;
@@ -284,6 +297,9 @@ export const foliageDefs = (() => {
 
 
     return {
-        TREE1: TREE1
+        TREE1: TREE1,
+        TREE2: TREE2,
+        SPHERE: SPHERE,
+        CONE1: CONE1,
     }
 })();
