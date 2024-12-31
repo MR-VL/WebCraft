@@ -139,7 +139,7 @@ export const voxelBlockBuilder = (() => {
 
             let totalHeight = normalizedHeight;
 
-            for(let i =0; i < this.craters.length; i++){
+            for(let i =0; i < this.craters.length; ++i){
                 const position = new THREE.Vector3(x, 0, z);
                 const [crater, radius] = this.craters[i];
                 const distance = crater.distanceTo(position);
@@ -479,6 +479,40 @@ export const voxelBlockBuilder = (() => {
         exponentiation: 1,
         height: 1
     })
+
+    class SDFList{
+        constructor(){
+            this.sdfs = [];
+        }
+
+        Add(sdf){
+            this.sdfs.push(sdf);
+        }
+
+        Intersects(aabb){
+            for(let i = 0; i < this.sdfs.length; ++i){
+                const index = this.sdfs[i];
+                if(s.AABB.intersectsBox(aabb)){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        Evaluate(x, y, z){
+            const position = new THREE.Vector3(x, y, z);
+
+            for(let i = 0; i<this.sdfs.length; ++i){
+                const index = this.sdfs[i];
+                if (index.AABB.containsPoint(position)) {
+                    const result = index.Evaluate(position);
+                    if(result){
+                        return result;
+                    }
+                }
+            }
+        }
+    }
 
 
 
