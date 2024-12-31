@@ -94,13 +94,86 @@ export const foliageDefs = (() => {
             });
         }
 
+        AddCappedCone(type, offset, start, end, startRadius, endRadius){
+            tmpS1.set(start.clone(), startRadius);
+            tmpS1.getBoundingBox(tmpB2);
+            tmpS1.set(end.clone(), endRadius);
+            tmpS1.getBoundingBox(tmpB3);
 
+            tmpB1.makeEmpty();
+            tmpB2.union(tmpB2);
+            tmpB1.union(tmpB3);
+            tmpB1.translate(offset);
+            tmpB1.translate(this.position);
+
+            this.aabb.union(tmpB1);
+
+            const startPos = start.clone();
+            const endPos = end.clone();
+            const offsetPos = offset.clone();
+
+            this.sdfs.push((position) => {
+                tmp1.copy(position);
+                tmp1.sub(offsetPos);
+                tmp1.sub(this.position)
+
+                if(sdCappedCone(tmp1, startPos, endPos, startRadius, endRadius) < 0){
+                    return type;
+                }
+                return null;
+            })
+        }
+
+        Evaluate(position){
+            for(let i = 0; i < this.sdfs.length; ++i){
+                const result = this.sdfs[i](position);
+                if (result){
+                    return result;
+                }
+            }
+            return null;
+        }
+    }
+
+    const noiseFoliage = new noise.Noise({
+        seed: 7,
+        octaves: 1,
+        scale: 1,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        exponentiation: 1,
+        height: 1
+    })
+
+    function TREE1(xPos, yPos, zPos){
+        // TODO dynamic generation of height and lean
+        const height = 15;
+        const lean = 5;
+        const trunkEnd = new THREE.Vector3(lean, height, 0);
+        const rootEnd1 = new THREE.Vector3(-6, 0, 1);
+        const rootEnd2 = new THREE.Vector3(9, 0, -7);
+        const rootEnd3 = new THREE.Vector3(8, 0, 6);
+
+        // TODO dynamic gen leaves
+        const leavesRadius = 4;
+        const angle = noiseFoliage.Get(xPos, 9, zPos) * 2 * Math.PI;
+        tmpQ.setFromAxisAngle(YAxis, angle);
+
+        trunkEnd.applyQuaternion(tmpQ);
+        rootEnd1.applyQuaternion(tmpQ);
+        rootEnd2.applyQuaternion(tmpQ);
+        rootEnd3.applyQuaternion(tmpQ);
+
+        //TODO leaf pos
+
+        const treeSDF = new SDF(new THREE.Vector3(xPos, yPos, zPos));
 
 
     }
 
+
+
     return {
-
-
+        TREE1: TREE1
     }
 })();
