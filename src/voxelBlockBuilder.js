@@ -450,6 +450,38 @@ export const voxelBlockBuilder = (() => {
         }
     }
 
+    const NoiseLuminance = new noise.Noise({
+        seed: 10,
+        octaves: 1,
+        scale: 0.99,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        exponentiation: 4,
+        height: 1
+    })
+
+    const noiseFadeIn = new noise.Noise({
+        seed: 11,
+        octaves: 4,
+        scale: 2.01,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        exponentiation: 1,
+        height: 1
+    })
+
+    const NoiseFoliage = new noise.Noise({
+        seed: 7,
+        octaves: 1,
+        scale: 0.99,
+        persistence: 0.5,
+        lacunarity: 2.0,
+        exponentiation: 1,
+        height: 1
+    })
+
+
+
     return{
         VoxelBlockBuilder: VoxelBuilderThreadedWorker,
     }
