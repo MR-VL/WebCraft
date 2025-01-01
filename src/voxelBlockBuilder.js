@@ -742,9 +742,25 @@ export const voxelBlockBuilder = (() => {
                         }
                     }
 
+                    if(lowestAdjacent < yOffset){
+                        for(let yi = lowestAdjacent +1; yi< yOffset; yi++){
+                            const ki = this.Key(xPos, yi, zPos);
+                            cells[ki] = {
+                                position: [xPos, yi, zPos],
+                                type: atlasType,
+                                visible: true,
+                                facesHidden: [false, false, false, false, false],
+                                ao: [null, null, null, null, null, null]
+                            };
+
+                            if(atlasType === 'grass' || atlasType === 'snow'){
+                                cells[ki].type = 'dirt';
+                            }
+                        }
+                    }
                 }
             }
-
+            return cells;
         }
 
 
