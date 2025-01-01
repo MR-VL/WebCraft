@@ -692,6 +692,60 @@ export const voxelBlockBuilder = (() => {
             return sdfs;
         }
 
+        CreateTerrain(){
+            const cells = {};
+
+            const xn = GameDefs.skipExteriorBlocks ? 0: -1;
+            const zn = GameDefs.skipExteriorBlocks ? 0: -1;
+            const xp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x: this.params.dimensions.x +1);
+            const zp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x: this.params.dimensions.x +1);
+
+            for(let x = xn; x<xp; x++){
+                for(let z = zn; z<zp; z++){
+                    const xPos = x + this.params.offset.x;
+                    const zPos = z + this.params.offset.z;
+
+                    const [atlasType, yOffset] = this.GenerateNoise(xPos, zPos);
+                    const yPos = yOffset;
+
+                    const k = this.Key(xPos, yPos, zPos);
+
+                    //todo Visible might be issue with block display on game
+                    cells[k] = {
+                        position: [xPos, yPos, zPos],
+                        type: atlasType,
+                        visible: true,
+                        facesHidden: [false, false, false, false, false],
+                        ao: [null, null, null, null, null, null]
+                    };
+
+                    if(GameDefs.introEnabled){
+                        for(let yi = yPos -1; yi > -20; yi --){
+                            const ky = this.Key(xPos, yi, zPos);
+
+                            cells[ky] = {
+                                position: [xPos, yi, zPos],
+                                type: 'dirt',
+                                visible: true,
+                                facesHidden: [false, false, false, false, false],
+                                ao: [null, null, null, null, null, null]
+                            };
+                        }
+                    }
+
+                    //cliff gen
+                    let lowestAdjacent = yOffset;
+                    for(let xi = -1; xi<1; xi++){
+                        for(let zi = -1; zi<=1; zi++){
+                            const [_, otherOffset] = this.GenerateNoise(xPos + xi, zPos + zi);
+                            lowestAdjacent = Math.min(otherOffset, lowestAdjacent);
+                        }
+                    }
+
+                }
+            }
+
+        }
 
 
 
