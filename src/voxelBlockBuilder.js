@@ -658,6 +658,38 @@ export const voxelBlockBuilder = (() => {
 
             }
 
+            if(GameDefs.foliageEnabled){
+                for(let x = -this.params.dimensions.x * 4; x < this.params.dimensions.x * 4; x+=16){
+                    for(let z = -this.params.dimensions.z*4; z < this.params.dimensions.z * 4; z+=16){
+                        const xPos = x + this.params.offset.x;
+                        const zPos = z + this.params.offset.z;
+
+                        const roll = NoiseFoliage.Get(xPos, 0.0, zPos);
+                        if(roll > 0.8){
+                            const [atlasType, yOffset] = this.GenerateNoise(xPos, zPos);
+                            const yPos = yOffset;
+
+                            if(yPos <= oceanLevel){
+                                continue;
+                            }
+
+                            // todo type correction
+                            if(atlasType === 'grass'){
+                                let treeType = foliageDefs.TREE1;
+                                if(NoiseFoliage.Get(xPos, 1.0, zPos) < 0.15){
+                                    treeType = foliageDefs.TREE2;
+                                }
+                                sdfs.Add(treeType(xPos, yPos, zPos));
+                            }
+                            else if(atlasType === 'sand'){
+                                let treeType = foliageDefs.PALMTREE;
+                                sdfs.Add(treeType(xPos, yPos, zPos));
+                            }
+                        }
+                    }
+                }
+            }
+            return sdfs;
         }
 
 
