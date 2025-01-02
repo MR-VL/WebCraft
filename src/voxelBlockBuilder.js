@@ -763,6 +763,48 @@ export const voxelBlockBuilder = (() => {
             return cells;
         }
 
+        ApplySDFsToVoxels(sdfs, cells){
+            const param1 = this.params.offset.clone();
+            const param2 = this.params.offset.clone().add(this.params.dimensions);
+            const aabb = new THREE.Box3(param1, param2);
+
+            if(sdfs.Intersects(aabb) || true){
+                for(let x = -1; x<this.params.dimensions.x + 1; x++){
+                    for(let z = -1; z<this.params.dimensions.z + 1; z++){
+                        const xPos = x + this.params.offset.x;
+                        const zPos = z + this.params.offset.z;
+                        const [_, yOffset] = this.GenerateNoise(xPos, zPos);
+
+                        for(let y = 0; y< 100; y++){
+                            const yPos = yOffset + y;
+                            const key = this.Key(xPos, yPos, zPos);
+                            if(key in cells){
+                                continue;
+                            }
+
+                            const result = sdfs.Evaluate(xPos, yPos, zPos);
+                            if(result){
+                                let roll = 0;
+                                if (result === 'treeLeaves' && !GameDefs.skipFoliageNoise){
+                                    roll = NoiseFoliage.Get(xPos, yPos, zPos);
+                                }
+                                if(roll < 0.7){
+                                    cells[key] = {
+                                        position: [xPos, yPos, zPos],
+                                        type: result,
+                                        visible: true,
+                                        facesHidden: [false, false, false, false, false],
+                                        ao: [null, null, null, null, null]
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
 
 
     }
