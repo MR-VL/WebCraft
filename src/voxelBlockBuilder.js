@@ -950,6 +950,26 @@ export const voxelBlockBuilder = (() => {
             }
         }
 
+        RemoveExteriorVoxels(cells){
+            const toRemove = [];
+            const xMin = this.params.offset.x;
+            const zMin = this.params.offset.z;
+            const xMax = xMin *2;
+            const zMax = zMin *2;
+
+            for(let k in cells){
+                const currentCell = cells[k];
+                if(currentCell.position[0] < xMin || currentCell.position[0] >= xMax
+                || currentCell.position[2] < zMin || currentCell.position[2] >= zMax){
+                    toRemove.push(k);
+                }
+            }
+
+            for(let i = 0; i < toRemove.length; ++i){
+                delete cells[toRemove[i]];
+            }
+        }
+
     }
 
     return{
