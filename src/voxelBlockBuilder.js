@@ -845,6 +845,84 @@ export const voxelBlockBuilder = (() => {
             return cells;
         }
 
+        BuildAO(cells){
+            if(GameDefs.skipAO){
+                return;
+            }
+            for(let k in cells) {
+                const currentCell = cells[k];
+
+                const occlusion = (x, y, z) => {
+                    const key = this.Key(currentCell.position[0] + x, currentCell.position[1] + y, currentCell.position[2] + z);
+                    if (key in cells) {
+                        return 0.75;
+                    }
+                    return 1.0;
+                }
+
+                //+x
+                if (!currentCell.facesHidden[0]) {
+                    currentCell.ao[0] = [
+                        occlusion(1,0,1) * occlusion(1,1,0)* occlusion(1,1,1),
+                        occlusion(1,0,-1) * occlusion(1,1,0)* occlusion(1,1,-1),
+                        occlusion(1,0,1) * occlusion(1,-1,0)* occlusion(1,-1,1),
+                        occlusion(1,0,-1) * occlusion(1,-1,0)* occlusion(1,-1,-1)
+                    ];
+                }
+
+                //-x
+                if (!currentCell.facesHidden[1]) {
+                    currentCell.ao[1] = [
+                        occlusion(-1,0,-1) * occlusion(-1,1,0)* occlusion(-1,1,-1),
+                        occlusion(-1,0,1) * occlusion(-1,1,0)* occlusion(-1,1,1),
+                        occlusion(-1,0,-1) * occlusion(-1,-1,0)* occlusion(-1,-1,-1),
+                        occlusion(-1,0,1) * occlusion(-1,-1,0)* occlusion(-1,-1,1)
+                    ];
+                }
+
+                //+y
+                if (!currentCell.facesHidden[2]) {
+                    currentCell.ao[2] = [
+                        occlusion(0,1,-1) * occlusion(-1,1,0)* occlusion(-1,1,-1),
+                        occlusion(0,1,-1) * occlusion(1,1,0)* occlusion(1,1,-1),
+                        occlusion(0,1,1) * occlusion(-1,1,0)* occlusion(-1,1,1),
+                        occlusion(0,1,1) * occlusion(1,1,0)* occlusion(1,1,1)
+                    ];
+                }
+
+                //-y
+                if (!currentCell.facesHidden[3]) {
+                    currentCell.ao[3] = [
+                        occlusion(0,-1,1) * occlusion(-1,-1,0)* occlusion(-1,-1,1),
+                        occlusion(0,-1,1) * occlusion(1,-1,0)* occlusion(1,-1,1),
+                        occlusion(0,-1,-1) * occlusion(-1,-1,0)* occlusion(-1,-1,-1),
+                        occlusion(0,-1,-1) * occlusion(1,-1,0)* occlusion(1,-1,-1)
+                    ];
+                }
+
+                //+z
+                if (!currentCell.facesHidden[4]) {
+                    currentCell.ao[4] = [
+                        occlusion(-1,0,1) * occlusion(0,1,1)* occlusion(-1,1,1),
+                        occlusion(1,0,1) * occlusion(0,1,1)* occlusion(1,1,1),
+                        occlusion(-1,0,1) * occlusion(0,-1,1)* occlusion(-1,-1,1),
+                        occlusion(1,0,1) * occlusion(0,-1,1)* occlusion(1,-1,1)
+                    ];
+                }
+
+                //-z
+                if (!currentCell.facesHidden[5]) {
+                    currentCell.ao[5] = [
+                        occlusion(1,0,-1) * occlusion(0,1,-1)* occlusion(1,1,-1),
+                        occlusion(-1,0,-1) * occlusion(0,1,-1)* occlusion(-1,1,-1),
+                        occlusion(1,0,-1) * occlusion(0,-1,-1)* occlusion(1,-1,-1),
+                        occlusion(-1,0,-1) * occlusion(0,-1,-1)* occlusion(-1,-1,-1)
+                    ];
+                }
+            }
+            return cells;
+        }
+
 
     }
 
