@@ -923,6 +923,32 @@ export const voxelBlockBuilder = (() => {
             return cells;
         }
 
+        ApplyFadeIn(cells){
+            if(this.params.currentTime < 0.0 || this.params.currentTime>1.0){
+                return;
+            }
+
+            const timeBiased = this.params.currentTime ** 2;
+            const yLowerBound = timeBiased;
+            const yUpperBound = timeBiased + 0.1;
+            const yRange = yUpperBound - yLowerBound;
+
+            const toRemove = [];
+            for(let k in cells){
+                const currentCell = cells[k];
+                const roll = noiseFadeIn.Get(...currentCell.position);
+
+                const yNormalized = (currentCell.position[1] + 50.0) / 250.0;
+                const yFactor = (yNormalized - yLowerBound) / yRange;
+                if(roll < yFactor){
+                    toRemove.push(k);
+                }
+            }
+
+            for(let i = 0; i<toRemove.length; ++i){
+                delete cells[toRemove[i]];
+            }
+        }
 
     }
 
