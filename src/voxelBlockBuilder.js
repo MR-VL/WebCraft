@@ -804,7 +804,46 @@ export const voxelBlockBuilder = (() => {
             }
         }
 
+        CreateOcean(groundVoxels){
+            const cells = {};
 
+            for(let x = -1; x<this.params.dimensions.x + 1; x++){
+                for(let z = -1; z<this.params.dimensions.z + 1; z++){
+                    const xPos = x + this.params.offset.x;
+                    const zPos = z + this.params.offset.z;
+
+                    const [_, yPos] = this.GenerateNoise(xPos, zPos);
+
+                    if(yPos < oceanLevel){
+                        const keyOcean = this.Key(xPos, oceanLevel, zPos);
+                        cells[keyOcean] = {
+                            position: [xPos, oceanLevel, zPos],
+                            type: 'ocean',
+                            visible: true,
+                            facesHidden: [false, false, false, false, false],
+                            ao: [null, null, null, null, null]
+                        };
+
+                        if(GameDefs.introEnabled){
+                            for(let yi = 1; yi<20; ++yi){
+                                const ky = this.Key(xPos, oceanLevel - yi, zPos);
+
+                                if(!(ky in groundVoxels)){
+                                    cells[ky] = {
+                                        position: [xPos, yi, zPos],
+                                        type: 'ocean',
+                                        visible: true,
+                                        facesHidden: [false, false, false, false, false],
+                                        ao: [null, null, null, null, null]
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return cells;
+        }
 
 
     }
