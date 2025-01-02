@@ -970,6 +970,26 @@ export const voxelBlockBuilder = (() => {
             }
         }
 
+    MergeCustomVoxels(cells){
+            const customVoxels = this.params.customVoxels;
+            const toRemove = [];
+            for(let k in customVoxels){
+                const currentCell = customVoxels[k];
+                if(currentCell.visible){
+                    currentCell.facesHidden = [false, false, false, false, false];
+                    currentCell.ao = [null, null, null, null, null, null];
+                }
+                else{
+                    toRemove.push(k);
+                }
+            }
+
+            Object.assign(cells, customVoxels);
+            for(let i = 0; i < toRemove.length; ++i){
+                delete cells[toRemove[i]];
+            }
+    }
+
     }
 
     return{
