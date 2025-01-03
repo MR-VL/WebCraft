@@ -990,6 +990,58 @@ export const voxelBlockBuilder = (() => {
             }
     }
 
+    RemoveVoxelAndFill(position, voxels){
+        const keyVoxel = this.Key(...position);
+        const custom = {};
+
+        custom[keyVoxel] = {
+            position: [...position],
+            visible: false
+        };
+
+        const[_, groundLevel] = this.GenerateNoise(position[0], position[2]);
+
+        if(position[1] <= groundLevel){
+            for(let xi = -1; xi<=1; xi++){
+                for(let yi = -1; yi<=1; yi++){
+                    for(let zi = -1; zi<=1; zi++){
+                        const xPos = position[0] + xi;
+                        const yPos = position[1] + yi;
+                        const zPos = position[2] + zi;
+
+                        const [voxelType, groundLevelAdjacent] = this.GenerateNoise(xPos, yPos);
+                        const key = this.Key(xPos, yPos, zPos);
+
+                        if(!(key in voxels) && yPos < groundLevelAdjacent){
+                            let type = 'dirt';
+                            //todo type casting
+                            if(voxelType === 'sand'){
+                                type = 'sand';
+                            }
+
+                            if(yPos < groundLevelAdjacent - 2){
+                                type= 'stone';
+                            }
+
+                            if(voxelType === 'moon'){
+                                type = 'moon';
+                            }
+
+                            custom[key] = {
+                                position: [xPos, yPos, zPos],
+                                type: type,
+                                visible: true
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        return custom;
+    }
+
+
+
     }
 
     return{
