@@ -514,26 +514,26 @@ export const voxelBlockBuilder = (() => {
         }
     }
 
-    class VoxelBuilderThreadedWorker{
-        constructor(){
+    class VoxelBuilderThreadedWorker {
+        constructor() {
             this.Create();
         }
 
-        Create(){
+        Create() {
             const pxGeometry = new THREE.PlaneBufferGeometry(1, 1);
-            pxGeometry.rotateY(Math.PI /  2);
+            pxGeometry.rotateY(Math.PI / 2);
             pxGeometry.translate(0.5, 0, 0);
 
             const nxGeometry = new THREE.PlaneBufferGeometry(1, 1);
-            nxGeometry.rotateY(-Math.PI /  2);
+            nxGeometry.rotateY(-Math.PI / 2);
             nxGeometry.translate(-0.5, 0, 0);
 
             const pyGeometry = new THREE.PlaneBufferGeometry(1, 1);
-            pyGeometry.rotateX(-Math.PI /  2);
+            pyGeometry.rotateX(-Math.PI / 2);
             pyGeometry.translate(0.5, 0, 0);
 
             const nyGeometry = new THREE.PlaneBufferGeometry(1, 1);
-            nyGeometry.rotateX(Math.PI /  2);
+            nyGeometry.rotateX(Math.PI / 2);
             nyGeometry.translate(0, -0.5, 0);
 
             const pzGeometry = new THREE.PlaneBufferGeometry(1, 1);
@@ -541,13 +541,13 @@ export const voxelBlockBuilder = (() => {
 
             const nzGeometry = new THREE.PlaneBufferGeometry(1, 1);
             nzGeometry.rotateX(Math.PI);
-            nzGeometry.translate(0,0, -0.5)
+            nzGeometry.translate(0, 0, -0.5)
 
             const invertUvs = [pxGeometry, nxGeometry, pzGeometry, nzGeometry];
 
-            for(let geometry of invertUvs){
-                for(let i = 0; i< geometry.attributes.uv.array.length; i+=2){
-                    geometry.attributes.uv.array[i+1] = 1.0 - geometry.attributes.uv.array[i+1];
+            for (let geometry of invertUvs) {
+                for (let i = 0; i < geometry.attributes.uv.array.length; i += 2) {
+                    geometry.attributes.uv.array[i + 1] = 1.0 - geometry.attributes.uv.array[i + 1];
                 }
             }
 
@@ -558,34 +558,34 @@ export const voxelBlockBuilder = (() => {
             ];
         }
 
-        Init(params){
+        Init(params) {
             this.params = params;
             this.params.offset = new THREE.Vector3(...params.offset);
             this.params.dimensions = new THREE.Vector3(...params.dimensions);
 
-            if (GameDefs.useFlatTerrain){
+            if (GameDefs.useFlatTerrain) {
                 this.terrainGenerator = new TerrainGeneratorFlat(params);
                 //test for nightfall TODO night
                 //this.terrainGenerator = new TerrainGeneratorMoon(params);
             }
         }
 
-        GenerateNoise(x, y){
+        GenerateNoise(x, y) {
             return this.terrainGenerator.Get(x, y);
         }
 
-        Key(x, y, z){
+        Key(x, y, z) {
             return x + '.' + y + '.' + z;
         }
 
-        PruneHiddenVoxels(cells){
-            if(GameDefs.skipPruning){
+        PruneHiddenVoxels(cells) {
+            if (GameDefs.skipPruning) {
                 return Object.assign({}, cells);
             }
 
             const prunedVoxels = {};
 
-            for(let k in cells){
+            for (let k in cells) {
                 const currentCell = cells[k];
 
                 const k1 = this.Key(
@@ -644,10 +644,10 @@ export const voxelBlockBuilder = (() => {
             return prunedVoxels;
         }
 
-        CreateFoliageSDFS(){
+        CreateFoliageSDFS() {
             const sdfs = new SDFList();
 
-            if(GameDefs.hardcodedFoliageEnabled){
+            if (GameDefs.hardcodedFoliageEnabled) {
                 const xPos = 10;
                 const yPos = 0;
                 const zPos = 10;
@@ -658,30 +658,29 @@ export const voxelBlockBuilder = (() => {
 
             }
 
-            if(GameDefs.foliageEnabled){
-                for(let x = -this.params.dimensions.x * 4; x < this.params.dimensions.x * 4; x+=16){
-                    for(let z = -this.params.dimensions.z*4; z < this.params.dimensions.z * 4; z+=16){
+            if (GameDefs.foliageEnabled) {
+                for (let x = -this.params.dimensions.x * 4; x < this.params.dimensions.x * 4; x += 16) {
+                    for (let z = -this.params.dimensions.z * 4; z < this.params.dimensions.z * 4; z += 16) {
                         const xPos = x + this.params.offset.x;
                         const zPos = z + this.params.offset.z;
 
                         const roll = NoiseFoliage.Get(xPos, 0.0, zPos);
-                        if(roll > 0.8){
+                        if (roll > 0.8) {
                             const [atlasType, yOffset] = this.GenerateNoise(xPos, zPos);
                             const yPos = yOffset;
 
-                            if(yPos <= oceanLevel){
+                            if (yPos <= oceanLevel) {
                                 continue;
                             }
 
                             // todo type correction
-                            if(atlasType === 'grass'){
+                            if (atlasType === 'grass') {
                                 let treeType = foliageDefs.TREE1;
-                                if(NoiseFoliage.Get(xPos, 1.0, zPos) < 0.15){
+                                if (NoiseFoliage.Get(xPos, 1.0, zPos) < 0.15) {
                                     treeType = foliageDefs.TREE2;
                                 }
                                 sdfs.Add(treeType(xPos, yPos, zPos));
-                            }
-                            else if(atlasType === 'sand'){
+                            } else if (atlasType === 'sand') {
                                 let treeType = foliageDefs.PALMTREE;
                                 sdfs.Add(treeType(xPos, yPos, zPos));
                             }
@@ -692,16 +691,16 @@ export const voxelBlockBuilder = (() => {
             return sdfs;
         }
 
-        CreateTerrain(){
+        CreateTerrain() {
             const cells = {};
 
-            const xn = GameDefs.skipExteriorBlocks ? 0: -1;
-            const zn = GameDefs.skipExteriorBlocks ? 0: -1;
-            const xp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x: this.params.dimensions.x +1);
-            const zp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x: this.params.dimensions.x +1);
+            const xn = GameDefs.skipExteriorBlocks ? 0 : -1;
+            const zn = GameDefs.skipExteriorBlocks ? 0 : -1;
+            const xp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x : this.params.dimensions.x + 1);
+            const zp = (GameDefs.skipExteriorBlocks ? this.params.dimensions.x : this.params.dimensions.x + 1);
 
-            for(let x = xn; x<xp; x++){
-                for(let z = zn; z<zp; z++){
+            for (let x = xn; x < xp; x++) {
+                for (let z = zn; z < zp; z++) {
                     const xPos = x + this.params.offset.x;
                     const zPos = z + this.params.offset.z;
 
@@ -719,8 +718,8 @@ export const voxelBlockBuilder = (() => {
                         ao: [null, null, null, null, null, null]
                     };
 
-                    if(GameDefs.introEnabled){
-                        for(let yi = yPos -1; yi > -20; yi --){
+                    if (GameDefs.introEnabled) {
+                        for (let yi = yPos - 1; yi > -20; yi--) {
                             const ky = this.Key(xPos, yi, zPos);
 
                             cells[ky] = {
@@ -735,15 +734,15 @@ export const voxelBlockBuilder = (() => {
 
                     //cliff gen
                     let lowestAdjacent = yOffset;
-                    for(let xi = -1; xi<1; xi++){
-                        for(let zi = -1; zi<=1; zi++){
+                    for (let xi = -1; xi < 1; xi++) {
+                        for (let zi = -1; zi <= 1; zi++) {
                             const [_, otherOffset] = this.GenerateNoise(xPos + xi, zPos + zi);
                             lowestAdjacent = Math.min(otherOffset, lowestAdjacent);
                         }
                     }
 
-                    if(lowestAdjacent < yOffset){
-                        for(let yi = lowestAdjacent +1; yi< yOffset; yi++){
+                    if (lowestAdjacent < yOffset) {
+                        for (let yi = lowestAdjacent + 1; yi < yOffset; yi++) {
                             const ki = this.Key(xPos, yi, zPos);
                             cells[ki] = {
                                 position: [xPos, yi, zPos],
@@ -753,7 +752,7 @@ export const voxelBlockBuilder = (() => {
                                 ao: [null, null, null, null, null, null]
                             };
 
-                            if(atlasType === 'grass' || atlasType === 'snow'){
+                            if (atlasType === 'grass' || atlasType === 'snow') {
                                 cells[ki].type = 'dirt';
                             }
                         }
@@ -763,32 +762,32 @@ export const voxelBlockBuilder = (() => {
             return cells;
         }
 
-        ApplySDFsToVoxels(sdfs, cells){
+        ApplySDFsToVoxels(sdfs, cells) {
             const param1 = this.params.offset.clone();
             const param2 = this.params.offset.clone().add(this.params.dimensions);
             const aabb = new THREE.Box3(param1, param2);
 
-            if(sdfs.Intersects(aabb) || true){
-                for(let x = -1; x<this.params.dimensions.x + 1; x++){
-                    for(let z = -1; z<this.params.dimensions.z + 1; z++){
+            if (sdfs.Intersects(aabb) || true) {
+                for (let x = -1; x < this.params.dimensions.x + 1; x++) {
+                    for (let z = -1; z < this.params.dimensions.z + 1; z++) {
                         const xPos = x + this.params.offset.x;
                         const zPos = z + this.params.offset.z;
                         const [_, yOffset] = this.GenerateNoise(xPos, zPos);
 
-                        for(let y = 0; y< 100; y++){
+                        for (let y = 0; y < 100; y++) {
                             const yPos = yOffset + y;
                             const key = this.Key(xPos, yPos, zPos);
-                            if(key in cells){
+                            if (key in cells) {
                                 continue;
                             }
 
                             const result = sdfs.Evaluate(xPos, yPos, zPos);
-                            if(result){
+                            if (result) {
                                 let roll = 0;
-                                if (result === 'treeLeaves' && !GameDefs.skipFoliageNoise){
+                                if (result === 'treeLeaves' && !GameDefs.skipFoliageNoise) {
                                     roll = NoiseFoliage.Get(xPos, yPos, zPos);
                                 }
-                                if(roll < 0.7){
+                                if (roll < 0.7) {
                                     cells[key] = {
                                         position: [xPos, yPos, zPos],
                                         type: result,
@@ -804,17 +803,17 @@ export const voxelBlockBuilder = (() => {
             }
         }
 
-        CreateOcean(groundVoxels){
+        CreateOcean(groundVoxels) {
             const cells = {};
 
-            for(let x = -1; x<this.params.dimensions.x + 1; x++){
-                for(let z = -1; z<this.params.dimensions.z + 1; z++){
+            for (let x = -1; x < this.params.dimensions.x + 1; x++) {
+                for (let z = -1; z < this.params.dimensions.z + 1; z++) {
                     const xPos = x + this.params.offset.x;
                     const zPos = z + this.params.offset.z;
 
                     const [_, yPos] = this.GenerateNoise(xPos, zPos);
 
-                    if(yPos < oceanLevel){
+                    if (yPos < oceanLevel) {
                         const keyOcean = this.Key(xPos, oceanLevel, zPos);
                         cells[keyOcean] = {
                             position: [xPos, oceanLevel, zPos],
@@ -824,11 +823,11 @@ export const voxelBlockBuilder = (() => {
                             ao: [null, null, null, null, null]
                         };
 
-                        if(GameDefs.introEnabled){
-                            for(let yi = 1; yi<20; ++yi){
+                        if (GameDefs.introEnabled) {
+                            for (let yi = 1; yi < 20; ++yi) {
                                 const ky = this.Key(xPos, oceanLevel - yi, zPos);
 
-                                if(!(ky in groundVoxels)){
+                                if (!(ky in groundVoxels)) {
                                     cells[ky] = {
                                         position: [xPos, yi, zPos],
                                         type: 'ocean',
@@ -845,11 +844,11 @@ export const voxelBlockBuilder = (() => {
             return cells;
         }
 
-        BuildAO(cells){
-            if(GameDefs.skipAO){
+        BuildAO(cells) {
+            if (GameDefs.skipAO) {
                 return;
             }
-            for(let k in cells) {
+            for (let k in cells) {
                 const currentCell = cells[k];
 
                 const occlusion = (x, y, z) => {
@@ -863,68 +862,68 @@ export const voxelBlockBuilder = (() => {
                 //+x
                 if (!currentCell.facesHidden[0]) {
                     currentCell.ao[0] = [
-                        occlusion(1,0,1) * occlusion(1,1,0)* occlusion(1,1,1),
-                        occlusion(1,0,-1) * occlusion(1,1,0)* occlusion(1,1,-1),
-                        occlusion(1,0,1) * occlusion(1,-1,0)* occlusion(1,-1,1),
-                        occlusion(1,0,-1) * occlusion(1,-1,0)* occlusion(1,-1,-1)
+                        occlusion(1, 0, 1) * occlusion(1, 1, 0) * occlusion(1, 1, 1),
+                        occlusion(1, 0, -1) * occlusion(1, 1, 0) * occlusion(1, 1, -1),
+                        occlusion(1, 0, 1) * occlusion(1, -1, 0) * occlusion(1, -1, 1),
+                        occlusion(1, 0, -1) * occlusion(1, -1, 0) * occlusion(1, -1, -1)
                     ];
                 }
 
                 //-x
                 if (!currentCell.facesHidden[1]) {
                     currentCell.ao[1] = [
-                        occlusion(-1,0,-1) * occlusion(-1,1,0)* occlusion(-1,1,-1),
-                        occlusion(-1,0,1) * occlusion(-1,1,0)* occlusion(-1,1,1),
-                        occlusion(-1,0,-1) * occlusion(-1,-1,0)* occlusion(-1,-1,-1),
-                        occlusion(-1,0,1) * occlusion(-1,-1,0)* occlusion(-1,-1,1)
+                        occlusion(-1, 0, -1) * occlusion(-1, 1, 0) * occlusion(-1, 1, -1),
+                        occlusion(-1, 0, 1) * occlusion(-1, 1, 0) * occlusion(-1, 1, 1),
+                        occlusion(-1, 0, -1) * occlusion(-1, -1, 0) * occlusion(-1, -1, -1),
+                        occlusion(-1, 0, 1) * occlusion(-1, -1, 0) * occlusion(-1, -1, 1)
                     ];
                 }
 
                 //+y
                 if (!currentCell.facesHidden[2]) {
                     currentCell.ao[2] = [
-                        occlusion(0,1,-1) * occlusion(-1,1,0)* occlusion(-1,1,-1),
-                        occlusion(0,1,-1) * occlusion(1,1,0)* occlusion(1,1,-1),
-                        occlusion(0,1,1) * occlusion(-1,1,0)* occlusion(-1,1,1),
-                        occlusion(0,1,1) * occlusion(1,1,0)* occlusion(1,1,1)
+                        occlusion(0, 1, -1) * occlusion(-1, 1, 0) * occlusion(-1, 1, -1),
+                        occlusion(0, 1, -1) * occlusion(1, 1, 0) * occlusion(1, 1, -1),
+                        occlusion(0, 1, 1) * occlusion(-1, 1, 0) * occlusion(-1, 1, 1),
+                        occlusion(0, 1, 1) * occlusion(1, 1, 0) * occlusion(1, 1, 1)
                     ];
                 }
 
                 //-y
                 if (!currentCell.facesHidden[3]) {
                     currentCell.ao[3] = [
-                        occlusion(0,-1,1) * occlusion(-1,-1,0)* occlusion(-1,-1,1),
-                        occlusion(0,-1,1) * occlusion(1,-1,0)* occlusion(1,-1,1),
-                        occlusion(0,-1,-1) * occlusion(-1,-1,0)* occlusion(-1,-1,-1),
-                        occlusion(0,-1,-1) * occlusion(1,-1,0)* occlusion(1,-1,-1)
+                        occlusion(0, -1, 1) * occlusion(-1, -1, 0) * occlusion(-1, -1, 1),
+                        occlusion(0, -1, 1) * occlusion(1, -1, 0) * occlusion(1, -1, 1),
+                        occlusion(0, -1, -1) * occlusion(-1, -1, 0) * occlusion(-1, -1, -1),
+                        occlusion(0, -1, -1) * occlusion(1, -1, 0) * occlusion(1, -1, -1)
                     ];
                 }
 
                 //+z
                 if (!currentCell.facesHidden[4]) {
                     currentCell.ao[4] = [
-                        occlusion(-1,0,1) * occlusion(0,1,1)* occlusion(-1,1,1),
-                        occlusion(1,0,1) * occlusion(0,1,1)* occlusion(1,1,1),
-                        occlusion(-1,0,1) * occlusion(0,-1,1)* occlusion(-1,-1,1),
-                        occlusion(1,0,1) * occlusion(0,-1,1)* occlusion(1,-1,1)
+                        occlusion(-1, 0, 1) * occlusion(0, 1, 1) * occlusion(-1, 1, 1),
+                        occlusion(1, 0, 1) * occlusion(0, 1, 1) * occlusion(1, 1, 1),
+                        occlusion(-1, 0, 1) * occlusion(0, -1, 1) * occlusion(-1, -1, 1),
+                        occlusion(1, 0, 1) * occlusion(0, -1, 1) * occlusion(1, -1, 1)
                     ];
                 }
 
                 //-z
                 if (!currentCell.facesHidden[5]) {
                     currentCell.ao[5] = [
-                        occlusion(1,0,-1) * occlusion(0,1,-1)* occlusion(1,1,-1),
-                        occlusion(-1,0,-1) * occlusion(0,1,-1)* occlusion(-1,1,-1),
-                        occlusion(1,0,-1) * occlusion(0,-1,-1)* occlusion(1,-1,-1),
-                        occlusion(-1,0,-1) * occlusion(0,-1,-1)* occlusion(-1,-1,-1)
+                        occlusion(1, 0, -1) * occlusion(0, 1, -1) * occlusion(1, 1, -1),
+                        occlusion(-1, 0, -1) * occlusion(0, 1, -1) * occlusion(-1, 1, -1),
+                        occlusion(1, 0, -1) * occlusion(0, -1, -1) * occlusion(1, -1, -1),
+                        occlusion(-1, 0, -1) * occlusion(0, -1, -1) * occlusion(-1, -1, -1)
                     ];
                 }
             }
             return cells;
         }
 
-        ApplyFadeIn(cells){
-            if(this.params.currentTime < 0.0 || this.params.currentTime>1.0){
+        ApplyFadeIn(cells) {
+            if (this.params.currentTime < 0.0 || this.params.currentTime > 1.0) {
                 return;
             }
 
@@ -934,115 +933,150 @@ export const voxelBlockBuilder = (() => {
             const yRange = yUpperBound - yLowerBound;
 
             const toRemove = [];
-            for(let k in cells){
+            for (let k in cells) {
                 const currentCell = cells[k];
                 const roll = noiseFadeIn.Get(...currentCell.position);
 
                 const yNormalized = (currentCell.position[1] + 50.0) / 250.0;
                 const yFactor = (yNormalized - yLowerBound) / yRange;
-                if(roll < yFactor){
+                if (roll < yFactor) {
                     toRemove.push(k);
                 }
             }
 
-            for(let i = 0; i<toRemove.length; ++i){
+            for (let i = 0; i < toRemove.length; ++i) {
                 delete cells[toRemove[i]];
             }
         }
 
-        RemoveExteriorVoxels(cells){
+        RemoveExteriorVoxels(cells) {
             const toRemove = [];
             const xMin = this.params.offset.x;
             const zMin = this.params.offset.z;
-            const xMax = xMin *2;
-            const zMax = zMin *2;
+            const xMax = xMin * 2;
+            const zMax = zMin * 2;
 
-            for(let k in cells){
+            for (let k in cells) {
                 const currentCell = cells[k];
-                if(currentCell.position[0] < xMin || currentCell.position[0] >= xMax
-                || currentCell.position[2] < zMin || currentCell.position[2] >= zMax){
+                if (currentCell.position[0] < xMin || currentCell.position[0] >= xMax
+                    || currentCell.position[2] < zMin || currentCell.position[2] >= zMax) {
                     toRemove.push(k);
                 }
             }
 
-            for(let i = 0; i < toRemove.length; ++i){
+            for (let i = 0; i < toRemove.length; ++i) {
                 delete cells[toRemove[i]];
             }
         }
 
-    MergeCustomVoxels(cells){
+        MergeCustomVoxels(cells) {
             const customVoxels = this.params.customVoxels;
             const toRemove = [];
-            for(let k in customVoxels){
+            for (let k in customVoxels) {
                 const currentCell = customVoxels[k];
-                if(currentCell.visible){
+                if (currentCell.visible) {
                     currentCell.facesHidden = [false, false, false, false, false];
                     currentCell.ao = [null, null, null, null, null, null];
-                }
-                else{
+                } else {
                     toRemove.push(k);
                 }
             }
 
             Object.assign(cells, customVoxels);
-            for(let i = 0; i < toRemove.length; ++i){
+            for (let i = 0; i < toRemove.length; ++i) {
                 delete cells[toRemove[i]];
             }
-    }
+        }
 
-    RemoveVoxelAndFill(position, voxels){
-        const keyVoxel = this.Key(...position);
-        const custom = {};
+        RemoveVoxelAndFill(position, voxels) {
+            const keyVoxel = this.Key(...position);
+            const custom = {};
 
-        custom[keyVoxel] = {
-            position: [...position],
-            visible: false
-        };
+            custom[keyVoxel] = {
+                position: [...position],
+                visible: false
+            };
 
-        const[_, groundLevel] = this.GenerateNoise(position[0], position[2]);
+            const [_, groundLevel] = this.GenerateNoise(position[0], position[2]);
 
-        if(position[1] <= groundLevel){
-            for(let xi = -1; xi<=1; xi++){
-                for(let yi = -1; yi<=1; yi++){
-                    for(let zi = -1; zi<=1; zi++){
-                        const xPos = position[0] + xi;
-                        const yPos = position[1] + yi;
-                        const zPos = position[2] + zi;
+            if (position[1] <= groundLevel) {
+                for (let xi = -1; xi <= 1; xi++) {
+                    for (let yi = -1; yi <= 1; yi++) {
+                        for (let zi = -1; zi <= 1; zi++) {
+                            const xPos = position[0] + xi;
+                            const yPos = position[1] + yi;
+                            const zPos = position[2] + zi;
 
-                        const [voxelType, groundLevelAdjacent] = this.GenerateNoise(xPos, yPos);
-                        const key = this.Key(xPos, yPos, zPos);
+                            const [voxelType, groundLevelAdjacent] = this.GenerateNoise(xPos, yPos);
+                            const key = this.Key(xPos, yPos, zPos);
 
-                        if(!(key in voxels) && yPos < groundLevelAdjacent){
-                            let type = 'dirt';
-                            //todo type casting
-                            if(voxelType === 'sand'){
-                                type = 'sand';
+                            if (!(key in voxels) && yPos < groundLevelAdjacent) {
+                                let type = 'dirt';
+                                //todo type casting
+                                if (voxelType === 'sand') {
+                                    type = 'sand';
+                                }
+
+                                if (yPos < groundLevelAdjacent - 2) {
+                                    type = 'stone';
+                                }
+
+                                if (voxelType === 'moon') {
+                                    type = 'moon';
+                                }
+
+                                custom[key] = {
+                                    position: [xPos, yPos, zPos],
+                                    type: type,
+                                    visible: true
+                                };
                             }
-
-                            if(yPos < groundLevelAdjacent - 2){
-                                type= 'stone';
-                            }
-
-                            if(voxelType === 'moon'){
-                                type = 'moon';
-                            }
-
-                            custom[key] = {
-                                position: [xPos, yPos, zPos],
-                                type: type,
-                                visible: true
-                            };
                         }
                     }
                 }
             }
+            return custom;
         }
-        return custom;
-    }
+
+        Rebuild() {
+            const terrainVoxels = this.CreateTerrain();
+            const sdfs = this.CreateFoliageSDFS();
+            this.ApplySDFsToVoxels(sdfs, terrainVoxels);
+
+            const oceanVoxels = !GameDefs.skipOceans ? this.CreateOcean(terrainVoxels) : {};
+
+            this.ApplyFadeIn(oceanVoxels);
+            this.ApplyFadeIn(terrainVoxels);
+
+            const prunedGroundVoxels = this.PruneHiddenVoxels(terrainVoxels);
+            const prunedOceanVoxels = this.PruneHiddenVoxels(oceanVoxels);
+
+            this.BuildAO(prunedGroundVoxels);
+
+            const prunedVoxels= Object.assign({}, prunedOceanVoxels, prunedGroundVoxels);
+
+            this.RemoveExteriorVoxels(prunedVoxels);
+
+            const data = this.BuildMeshDataFromVoxels(prunedVoxels);
+            const voxels = Object.assign({}, terrainVoxels, oceanVoxels);
+
+            this.RemoveExteriorVoxels(voxels);
+
+            for(let k in voxels) {
+                const current = voxels[k];
+                voxels[k] = {
+                    type: current.type,
+                    position: current.position,
+                    visible: current.visible
+                };
+            }
+
+            data.voxels = voxels;
+            return data;
+        }
 
 
-
-    }
+    }//voxelBuilderThreadedWorker
 
     return{
         VoxelBlockBuilder: VoxelBuilderThreadedWorker,
