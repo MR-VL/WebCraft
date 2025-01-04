@@ -1038,6 +1038,77 @@ export const voxelBlockBuilder = (() => {
             return custom;
         }
 
+        BuildMeshDataFromVoxels(cells){
+            const meshes = {};
+            meshes.opaque = {
+                positions: [],
+                uvs:[],
+                uvSlices:[],
+                normals:[],
+                indices: [],
+                colors:[]
+            };
+
+            meshes.transparent = {
+                positions: [],
+                uvs: [],
+                uvSlices: [],
+                normals: [],
+                indices: [],
+                colours: [],
+            };
+
+            for(let c in cells) {
+                const currentCell = cells[c];
+
+                for (let i = 0; i < 6; ++i) {
+                    if(currentCell.facesHidden[i]){
+                        continue;
+                    }
+
+                    const targetData = currentCell.type === 'ocean' ? meshes.transparent: meshes.opaque;
+                    const bi = targetData.positions.length / 3;
+                    const localPositions = [...this.geometries[i].attributes.position.array];
+                    for(let j=0; j<3; ++j){
+                        for(let v =0; v<4; ++v){
+                            localPositions[v*3+j] += currentCell.position[j];
+                        }
+                    }
+
+                    targetData.positions.push(...localPositions);
+                    targetData.uvs.push(...this.geometries[i].attributes.uv.array);
+                    targetData.normals.push(this.geometries[i].attributes.normal.array);
+
+                    const luminance = NoiseLuminance.Get(...currentCell.position)* 0.1 + 0.9;
+                    for(let v=0; v<4; ++v){
+                        targetData.uvSlices.push(this.params.blockTypes[currentCell.type].textures[i]);
+
+                        const color = new THREE.Color(0xFFFFFF);
+                        if(!GameDefs.skipVariableLuminance){
+                            color.multiplyScalar(luminance);
+                        }
+
+                        if(currentCell.ao[i]){
+                            color.multiplyScalar(currentCell.ao[i][v]);
+                        }
+
+                        color.convertSRGBToLinear();
+                        targetData.colors.push(color.r, color.g, color.b);
+                    }
+
+                    const localIndices = [...this.geometries[i].index.array];
+
+                    for(let j=0; j<localIndices.length; ++j){
+                        localIndices[j] += bi;
+                    }
+
+                    targetData.indices.push(...localIndices);
+                }
+            }
+
+
+        }
+
         Rebuild() {
             const terrainVoxels = this.CreateTerrain();
             const sdfs = this.CreateFoliageSDFS();
@@ -1075,6 +1146,31 @@ export const voxelBlockBuilder = (() => {
             return data;
         }
 
+        PartialRebuild(existingVoxels, neighboringVoxels) {
+            const voxels = Object.assign({}, existingVoxels, neighboringVoxels);
+            const toRemove = [];
+            for(let k in voxels) {
+                const current = voxels[k];
+                if(current.visible){
+                    current.facesHidden = [false, false, false, false, false];
+                    current.ao = [null, null, null, null, null, null];
+                }
+                else{
+                    toRemove.push(k);
+                }
+            }
+            for(let i = 0; i < toRemove.length; ++i) {
+                delete voxels[toRemove[i]];
+            }
+
+            const prunedVoxels = this.PruneHiddenVoxels(voxels);
+            this.BuildAO(prunedVoxels);
+
+            this.RemoveExteriorVoxels(prunedVoxels);
+            const data = this.BuildMeshDataFromVoxels(prunedVoxels);
+            data.voxels = existingVoxels;
+            return data;
+        }
 
     }//voxelBuilderThreadedWorker
 
