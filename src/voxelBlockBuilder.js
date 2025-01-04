@@ -1106,7 +1106,37 @@ export const voxelBlockBuilder = (() => {
                 }
             }
 
+            const bytesInFloat32 = 4;
+            const bytesInInt32 = 4;
+            const data ={};
 
+            for(let k in meshes){
+                const positionsArray = new Float32Array(new ArrayBuffer(bytesInFloat32*meshes[k].positions.length));
+                const normalsArray = new Float32Array(new ArrayBuffer(bytesInFloat32*meshes[k].normals.length));
+                const uvsArray = new Float32Array(new ArrayBuffer(bytesInFloat32*meshes[k].uvs.length));
+                const uvSlicesArray = new Float32Array(new ArrayBuffer(bytesInFloat32*meshes[k].uvSlices.length));
+                const colorsArray = new Float32Array(new ArrayBuffer(bytesInFloat32*meshes[k].colors.length));
+                const indicesArray = new Uint32Array(new ArrayBuffer(bytesInInt32*meshes[k].indices.length));
+
+                positionsArray.set(meshes[k].positions, 0);
+                normalsArray.set(meshes[k].normals, 0);
+                uvsArray.set(meshes[k].uvSlices, 0);
+                uvSlicesArray.set(meshes[k].uvSlices, 0);
+                colorsArray.set(meshes[k].colors,0);
+                indicesArray.set(meshes[k].indices,0);
+
+                data[k] = {
+                    positions: positionsArray,
+                    uvs: uvsArray,
+                    uvSlices: uvSlicesArray,
+                    normals: normalsArray,
+                    colors: colorsArray,
+                    indices: indicesArray
+                };
+            }
+
+            data.buildId = this.params.buildId;
+            return data;
         }
 
         Rebuild() {
