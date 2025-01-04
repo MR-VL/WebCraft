@@ -140,6 +140,39 @@ export const threeJSComponents = (() =>{
             this.composer.addPass(this.fxaa);
             this.composer.addPass(new ShaderPass(GammaCorrectionShader));
 
+
+            const mesh1 = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(0.1, 0.01, 0.01),
+                new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(0xFFFFFF),
+                    depthWrite: false,
+                    depthTest: false
+                })
+            );
+            mesh1.position.set(0, 0, -2);
+
+            const mesh2 = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(0.1, 0.01, 0.01),
+                new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(0xFFFFFF),
+                    depthWrite: false,
+                    depthTest: false
+                })
+            );
+            mesh2.position.set(0, 0, -2);
+
+            this.uiCamera.add(mesh1);
+            this.uiCamera.add(mesh2);
+
+            if(!GameDefs.showTools){
+                mesh1.visible = false;
+                mesh2.visible = false;
+            }
+
+            //todo orbit ctrl
+
+            this.LoadSky();
+            this.OnResize();
         }
 
 
