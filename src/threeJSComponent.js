@@ -187,7 +187,20 @@ export const threeJSComponents = (() =>{
             this.fxaa.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * pixelRatio);
         }
 
+        LoadSky(){
+            const hemisphereLight = new THREE.HemisphereLight(0x483965, 0xFFFFFF, 0.9);
+            this.scene.add(hemisphereLight);
+            this.uiScene.add(hemisphereLight);
 
+            const loader = new THREE.CubeTextureLoader();
+            const texture = loader.load([
+                //todo ADD photo here
+            ]);
+
+            texture.encoding = THREE.sRGBEncoding;
+
+
+        }
 
 
     }
