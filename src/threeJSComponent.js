@@ -68,7 +68,79 @@ export const threeJSComponents = (() =>{
         // gl_FragColor = vec4(vec3(normalMix * normalMix), 1.0);
       }`;
 
+    class ThreeJSController extends entity.Component{
+        static className = "ThreeJSController";
 
+        get Name(){
+            return ThreeJSController.className;
+        }
+
+        constructor() {
+            super();
+        }
+
+        InitEntity(){
+            this.threejs = new THREE.WebGLRenderer({antialias:false});
+
+            this.threejs.shadowMap.enabled = true;
+            this.threejs.shadowMap.type= THREE.PCFSoftShadowMap;
+            this.threejs.setPixelRatio(window.devicePixelRatio);
+            this.threejs.setSize( window.innerWidth, window.innerHeight );
+            this.threejs.domElement.id = 'threejs';
+
+            document.getElementById('container').appendChild(this.threejs.domElement);
+            window.addEventListener('resize', () => {this.OnResize();}, false);
+
+            const fov = 60;
+            const aspect = 1920 / 1080;
+            const near = 0.5;
+            const far = 10000.0;
+            this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            this.camera.position.set(15, 50, 15);
+            this.camera.lookAt(0, 0, 0);
+
+            this.uiCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
+            this.scene = new THREE.Scene();
+            this.scene.add(this.camera);
+
+            this.uiScene = new THREE.Scene();
+            this.uiScene.add(this.uiCamera);
+
+            let light = new THREE.DirectionalLight(0xb1b6d0, 0.7);
+            light.position.set(-10, 500, 10);
+            light.target.position.set(0, 0, 0);
+            this.scene.add(light);
+            this.uiScene.add(light.clone());
+
+            this.sun = light;
+
+            const params = {
+                minFilter: THREE.LinearFilter,
+                maxFilter: THREE.LinearFilter,
+                format: THREE.RGBAFormat,
+                type: THREE.FloatType
+            };
+
+            const hdr = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, params);
+            hdr.stencilBuffer = false;
+            hdr.depthBuffer = true;
+            hdr.depthTexture = new THREE.DepthTexture();
+            hdr.depthTexture.format = THREE.DepthFormat;
+            hdr.depthTexture.type = THREE.UnsignedIntType;
+
+            this.fxaa = new ShaderPass(FXAAShader);
+
+            const uiPass = new RenderPass(this.uiScene, this.uiCamera);
+            uiPass.clear = false;
+
+            this.composer = new EffectComposer(this.threejs, hdr);
+            this.composer.addPass(new RenderPass(this.scene, this.camera));
+            this.composer.addPass(uiPass);
+            this.composer.addPass(this.fxaa);
+            this.composer.addPass(new ShaderPass(GammaCorrectionShader));
+
+        }
 
 
 
