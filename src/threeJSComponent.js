@@ -175,6 +175,19 @@ export const threeJSComponents = (() =>{
             this.OnResize();
         }
 
+        OnResize(){
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.threejs.setSize( window.innerWidth, window.innerHeight );
+            this.composer.setSize( window.innerWidth, window.innerHeight );
+
+            const pixelRatio = this.threejs.getPixelRatio();
+
+            this.fxaa.material.uniforms['resolution'].value.x = 1 / (window.innerWidth * pixelRatio);
+            this.fxaa.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * pixelRatio);
+        }
+
+
 
 
     }
