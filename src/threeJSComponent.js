@@ -12,7 +12,7 @@ import {GameDefs} from "./Game-defs.js";
 import {defs} from "./defs.js";
 
 export const threeJSComponents = (() =>{
-    const VS = `
+    const vertexShader = `
       varying vec3 vWorldPosition;
       
       void main() {
@@ -22,7 +22,7 @@ export const threeJSComponents = (() =>{
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
       }`;
 
-    const FS =  `
+    const fragmentShader =  `
       uniform vec3 topColor;
       uniform vec3 bottomColor;
       uniform vec3 playerPos;
@@ -199,7 +199,30 @@ export const threeJSComponents = (() =>{
 
             texture.encoding = THREE.sRGBEncoding;
 
+            const uniforms = {
+                "topColor": {value: defs.SkyColor.clone()},
+                "bottomColor": {value: defs.FogColor.clone()},
+                "offset": {value:0},
+                "exponent": {value: 0.5},
+                "background": {value: texture},
+                "whiteBlend": {value: 0.0},
+                "playerPos": {value: new THREE.Vector3()},
+                time:{
+                    value:0.0
+                }
+            };
 
+            const skyGeo = new THREE.SphereBufferGeometry(5000, 32, 15);
+            const skyMat = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                side: THREE.BackSide
+            });
+
+            const sky = new THREE.Mesh(skyGeo, skyMat);
+            this.sky = sky;
+            this.scene.add(sky);
         }
 
 
