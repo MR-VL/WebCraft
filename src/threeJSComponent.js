@@ -225,7 +225,34 @@ export const threeJSComponents = (() =>{
             this.scene.add(sky);
         }
 
+        Update(timeElapsed){
+            const player = this.FindEntity('player');
+            if(!player){
+                return;
+            }
 
+            const position = player.position;
+            const forward = new THREE.Vector3(0, 0, -1);
+            forward.applyQuaternion(player.Quaternion);
+            forward.multiplyScalar(750);
+
+            this.sun.position.copy(position);
+            this.sun.position.add(new THREE.Vector3(-50, 200, -10));
+            this.sun.target.position.copy(position);
+            this.sun.updateMatrixWorld();
+            this.sun.target.updateMatrix();
+
+            this.sky.position.copy(new THREE.Vector3(position.x, 0, position.z));
+            this.sky.material.uniforms.playerPos.value.copy(position);
+            this.sky.material.uniforms.time.value += timeElapsed;
+            this.sky.material.needsUpdate = true;
+        }
+
+        Render(){
+            this.uiCamera.position.copy(this.camera.position);
+            this.uiCamera.quaternion.copy(this.camera.quaternion);
+            this.composer.render();
+        }
     }
 
     return{
