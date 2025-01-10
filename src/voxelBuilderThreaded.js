@@ -167,6 +167,15 @@ export const voxelBuilderThreaded = (() => {
             this.dirty = false;
         }
 
+        HasVoxelAt(x, y, z){
+            const key = this.Key(x, y, z);
+            if (!(key in this.voxels)){
+                return false;
+            }
+
+            return this.voxels[key].visible;
+        }
+
     }// end sparsevoxelcellblock class
 
     return{
