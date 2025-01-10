@@ -194,7 +194,12 @@ export const threeJSComponents = (() =>{
 
             const loader = new THREE.CubeTextureLoader();
             const texture = loader.load([
-                //todo ADD photo here
+                './resources/space/posx.jpg',
+                './resources/space/negx.jpg',
+                './resources/space/posy.jpg',
+                './resources/space/negy.jpg',
+                './resources/space/posz.jpg',
+                './resources/space/negz.jpg'
             ]);
 
             texture.encoding = THREE.sRGBEncoding;
