@@ -176,6 +176,31 @@ export const voxelBuilderThreaded = (() => {
             return this.voxels[key].visible;
         }
 
+        FindVoxelsNear(position, radius){
+            const xPositive = Math.ceil(position.x + (radius + 1));
+            const yPositive = Math.ceil(position.y + (radius + 1));
+            const zPositive = Math.ceil(position.z + (radius + 1));
+            const xNegative = Math.floor(position.x - (radius + 1));
+            const yNegative = Math.floor(position.y - (radius + 1));
+            const zNegative = Math.floor(position.z - (radius + 1));
+
+            const voxels = [];
+            for (let xi = xNegative; xi <= xPositive; ++xi) {
+                for (let yi = yNegative; yi <= yPositive; ++yi) {
+                    for (let zi = zNegative; zi <= zPositive; ++zi) {
+                        const k = this.Key(xi, yi, zi);
+                        if (k in this.voxels) {
+                            if (this.voxels[k].visible) {
+                                voxels.push(this.voxels[k]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return voxels;
+        }
+
     }// end sparsevoxelcellblock class
 
     return{
