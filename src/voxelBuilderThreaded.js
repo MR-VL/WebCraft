@@ -95,7 +95,47 @@ export const voxelBuilderThreaded = (() => {
             }
         }
 
+        RemoveVoxelAt(position){
+            this.buildID++;
+            this.dirty = true;
 
+            const params = {
+                buildID: this.buildID,
+                offset: this.params.offset.toArray(),
+                dimensions: this.params.dimensions.toArray(),
+                blockTypes: this.params.blockTypes,
+                currentTime: 0.0
+            };
+
+            this.builder.Init(params);
+
+            const keyVoxel = this.Key(...position);
+            this.voxels[keyVoxel].visible = false;
+            const fillVoxels = this.builder.RemoveVoxelAndFill(position, this.voxels);
+            for(let key in fillVoxels){
+                this.params.parent.InsertVoxelAt(fillVoxels[key].position, fillVoxels[key].type, true);
+            }
+
+            const neighbors = this.params.parent.GetAdjacentBlocks(this.params.offset.x, this.params.offset.z);
+
+            //todo possible cleanup / make into function due to reuse
+            for(let xi = -1; xi <= 1; ++xi){
+                for(let yi = -1; yi <= 1; ++yi){
+                    for(let zi = -1; zi <= 1; ++zi){
+                        for(let ni=0; ni < neighbors.length; ++ni){
+                            const key = this.Key(position[0]+xi, position[1]+yi, position[2]+zi);
+                            if(key in neighbors[ni].voxels){
+                                neighbors[ni].buildID++;
+                                neighbors[ni].dirty = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    PartialRebuild(){
 
     }
 
