@@ -58,7 +58,7 @@ export const workerPool = (() => {
                 current.postMessage(workItem, (version) => {
                     delete this.busy[current.id];
                     this.free.push(current);
-                    workResolve(current);
+                    workResolve(version);
                     this.pumpQueue();
                 });
             }
