@@ -133,12 +133,41 @@ export const voxelBuilderThreaded = (() => {
                 }
             }
         }
-    }
 
-    PartialRebuild(){
+        PartialRebuild(){
+            const neighbors = this.params.parent.GetAdjacentBlocks(this.params.offset.x, this.params.offset.z);
+            const neighborVoxels = {};
+            const xNegative = this.params.offset.x -1;
+            const zNegative = this.params.offset.z-1;
+            const xPositive = this.params.offset.x + this.params.dimensions.x;
+            const zPositive = this.params.offset.z + this.params.dimensions.z;
 
-    }
+            for(let ni =0; ni<neighbors.length; ++ni){
+                const neighbor = neighbors[ni];
+                for(let key in neighbors.voxels){
+                    const vox = neighbor.voxels[key];
+                    //todo possible type cast
+                    if(vox.position[0] === xNegative || vox.position[0] === xPositive || vox.position[2]=== zNegative || vox.position[2]===zPositive){
+                        neighborVoxels[key] = vox;
+                    }
+                }
+            }
 
+            const params = {
+                buildID: this.buildID,
+                offset: this.params.offset.toArray(),
+                dimensions: this.params.dimensions.toArray(),
+                blockTypes: this.params.blockTypes,
+                currentTime: 0.0
+            };
+
+            this.builder.Init(params);
+            const data = this.builder.PartialRebuild(this.voxels, neighborVoxels);
+            this.RebuildMeshFromData(data);
+            this.dirty = false;
+        }
+
+    }// end sparsevoxelcellblock class
 
     return{
         VoxelBuilderThreaded : VoxelBuilderThreaded
