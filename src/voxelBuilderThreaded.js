@@ -224,6 +224,22 @@ export const voxelBuilderThreaded = (() => {
             return mesh;
         }
 
+        RebuildMeshFromData(data){
+            this.ReleaseAssets();
+
+            if(data.opaque.positions.length > 0){
+                this.opaqueMesh = this.BuildGeometry(data.opaque, this.params.materialOpaque);
+                this.group.add(this.opaqueMesh);
+            }
+            if(data.transparent.positions.length > 0){
+                this.transparentMesh = this.BuildGeometry(data.transparent, this.params.materialTransparent);
+                this.group.add(this.transparentMesh);
+            }
+
+            this.voxels = data.voxels;
+            this.lastBuildID = data.buildID;
+        }
+
     }// end sparsevoxelcellblock class
 
     return{
