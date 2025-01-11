@@ -242,6 +242,62 @@ export const voxelBuilderThreaded = (() => {
 
     }// end sparsevoxelcellblock class
 
+
+     //todo add preset depending on hardware or have it to where user can change
+    // 7 sometimes lags on generation at least on my computer
+    const numWorkers = 7;
+
+
+    class VoxelBuilderThreaded{
+        constructor(params) {
+            this.old = [];
+            this.blocks = [];
+            this.workerPool = new workerPool.WorkerPool(numWorkers);
+            this.params = params;
+            this.currentTime = 0.01;
+        }
+
+        OnResult(block, message){
+            if(message.subject === 'buildChunkResult'){
+                block.RebuildMeshFromData(message.data);
+                block.Show();
+            }
+        }
+
+        AllocateBlock(params){
+            const blockParams = {...this.params, ...params};
+            const block = new SparseVoxelCellBlock(blockParams);
+
+            block.Hide();
+            this.blocks.push(block);
+            this.RebuildBlock(block);
+            return block;
+        }
+
+        RebuildBlock(block){
+            if(block.building){
+                return;
+            }
+
+            const message = {
+                subject: 'buildChunk',
+                params: {
+                    buildID: block.buildID,
+                    offset: block.params.offset.toArray(),
+                    dimensions: this.params.dimensions.toArray(),
+                    blockTypes: this.params.blockTypes,
+                    currentTime: this.currentTime
+                }
+            };
+
+            block.building = true;
+            this.workerPool.enqueue(message => {
+                block.building = false;
+                this.OnResult(block, message);
+            });
+        }
+    }//end voxelBuilderthreaded
+
     return{
         VoxelBuilderThreaded : VoxelBuilderThreaded
     };
