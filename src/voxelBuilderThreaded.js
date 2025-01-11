@@ -296,8 +296,47 @@ export const voxelBuilderThreaded = (() => {
                 this.OnResult(block, message);
             });
         }
-    }//end voxelBuilderthreaded
 
+        ScheduleDestroy(blocks){
+            this.old.push(...blocks);
+        }
+
+        DestroyBlocks(blocks){
+            for(let current of blocks){
+                current.Destroy();
+            }
+        }
+
+        get Busy(){
+           return this.workerPool.Busy;
+        }
+
+        Update(timeElapsed){
+            if(!this.Busy){
+                this.DestroyBlocks(this.old);
+                this.old = [];
+            }
+
+            this.blocks = this.blocks.filter(block => !block.Destroyed);
+
+            for(let i=0; i<this.blocks.length; ++i){
+                if(GameDefs.introEnabled){
+                    this.RebuildBlock(this.blocks[i]);
+                }
+
+                if(this.blocks[i].Dirty){
+                    this.blocks[i].PartialRebuild();
+                }
+            }
+
+            if(GameDefs.introEnabled){
+                this.currentTime += timeElapsed * GameDefs.introRate;
+            }
+            else{
+                this.currentTime = 2;
+            }
+        }
+    }//end voxelBuilderthreaded
     return{
         VoxelBuilderThreaded : VoxelBuilderThreaded
     };
