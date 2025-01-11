@@ -201,6 +201,29 @@ export const voxelBuilderThreaded = (() => {
             return voxels;
         }
 
+        BuildGeometry(data, material){
+            const geometry = new THREE.BufferGeometry();
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = false;
+            mesh.receiveShadow = true;
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.positions, 3));
+            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals, 3));
+            geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data.uvs, 2));
+            geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(data.uvSlices, 1));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors, 3));
+            geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.normal.needsUpdate = true;
+            geometry.attributes.uv.needsUpdate = true;
+            geometry.attributes.color.needsUpdate = true;
+
+            geometry.computeBoundingBox();
+            geometry.computeBoundingSphere();
+            return mesh;
+        }
+
     }// end sparsevoxelcellblock class
 
     return{
