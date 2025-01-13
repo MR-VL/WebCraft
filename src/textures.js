@@ -69,8 +69,14 @@ export const textures = (() => {
             this.onLoad();
         }
 
-    }
+        LoadAtlas(atlas, names){
+            this.textures[atlas] = {
+                textures: names.map(name => this.LoadTexture(name)),
+                atlas: null
+            };
+        }
 
+    }
 
     return{
         TextureAtlas: TextureAtlas
