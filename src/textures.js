@@ -12,7 +12,7 @@ export const textures = (() => {
         return context.getImageData(0, 0, image.width, image.height);
     }
 
-    class Texture {
+    class TextureAtlas {
         constructor(){
             this.Create();
             this.onLoad = () => {};
