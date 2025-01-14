@@ -26,6 +26,21 @@ export const sparseVoxelCellManager = (() =>{
             this.totalTime = 0.0;
         }
 
+        InitEntity(){
+            this.scene = this.FindEntity('renderer').GetComponent("ThreeJSController").scene;
+            this.materialOpaque = new THREE.ShaderMaterial({
+                uniforms: {
+                    diffuseMap:{
+                        value: null
+                    }
+                },
+
+            })
+
+
+
+        }
+
 
     }
 
