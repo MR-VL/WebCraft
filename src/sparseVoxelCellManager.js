@@ -205,6 +205,48 @@ export const sparseVoxelCellManager = (() =>{
             return voxels;
         }
 
+        FindIntersectionWithRay(ray, maxDistance){
+            const voxels = this.FindVoxelsNear(ray.origin, maxDistance);
+            const intersections = [];
+
+            const AsAABB = (v) => {
+                const position = new THREE.Vector3(v.position[0], v.position[1], v.position[2]);
+                const half = new THREE.Vector3(0.5, 0.5, 0.5);
+
+                const mesh1 = new THREE.Vector3();
+                mesh1.copy(position);
+                mesh1.sub(half);
+
+                const mesh2 = new THREE.Vector3();
+                mesh2.copy(position);
+                mesh2.add(half);
+
+                return new THREE.Box3(mesh1, mesh2);
+            }
+
+            const boxes = voxels.map(v => AsAABB(v));
+            const tmpV = new THREE.Vector3();
+
+            for(let i = 0; i < boxes.length; ++i){
+                if(ray.intersectBox(boxes[i], tmpV)){
+                    intersections.push({
+                        voxel: voxels[i],
+                        aabb: boxes[i],
+                        intersectionPoint: tmpV.clone(),
+                        distance: tmpV.distanceTo(ray.origin)
+                    });
+                }
+            }
+
+            intersections.sort((a,b) => {
+               return a.distance - b.distance;
+            });
+
+            return intersections;
+        }
+
+
+
     }
 
     return{
