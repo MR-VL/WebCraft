@@ -125,6 +125,24 @@ export const sparseVoxelCellManager = (() =>{
             this.materialTransparent.uniforms.noiseMap.value = noiseTexture;
         }
 
+        Key(x, y, z) {
+            return x + '.' + y + '.' + z;
+        }
+
+        BlockIndex(xPositive, zPositive) {
+            const x = Math.floor(xPositive / this.cellDimensions.x);
+            const z = Math.floor(xPositive / this.cellDimensions.z);
+            return [x, z];
+        }
+
+        FindBlock(xPositive, zPositive) {
+            const [currentX, currentZ] = this.BlockIndex(xPositive, zPositive);
+            const key = this.Key(currentX, 0,  currentZ);
+            if(key in this.blocks){
+                return this.blocks[key];
+            }
+            return null;
+        }
 
     }
 
