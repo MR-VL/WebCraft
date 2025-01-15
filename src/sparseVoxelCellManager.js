@@ -187,6 +187,24 @@ export const sparseVoxelCellManager = (() =>{
             return block.HasVoxelAt(x, y, z);
         }
 
+        FindVoxelsNear(position, radius){
+            const [xNegative, zNegative] = this.BlockIndex(position.x - radius, position.z - radius);
+            const [xPositive, zPositive] = this.BlockIndex(position.x + radius, position.z + radius);
+
+            const voxels = [];
+            for(let xi = xNegative; xi <= xPositive; xi++){
+                for(let zi = zNegative; zi <= zPositive; zi++){
+                    const key = this.Key(xi, 0, zi);
+                    if(key in this.blocks){
+                        const current = this.blocks[key];
+
+                        voxels.push(...current.FindVoxelsNear(position, radius));
+                    }
+                }
+            }
+            return voxels;
+        }
+
     }
 
     return{
