@@ -7,6 +7,7 @@ import {textures} from "./textures.js";
 import {textureDefs} from "./textureDefs.js";
 import {defs} from "./defs.js";
 import {GameDefs} from "./Game-defs.js";
+import {noise} from "./noise.js";
 
 export const sparseVoxelCellManager = (() =>{
 
@@ -73,6 +74,55 @@ export const sparseVoxelCellManager = (() =>{
                 materialTransparent: this.materialTransparent,
                 blockTypes: this.blockTypes,
             });
+        }
+
+        LoadTextures(){
+            this.blockTypes = {};
+            const textureSet = new Set();
+            for (let k in textureDefs.DEFS) {
+                const t = textureDefs.DEFS[k];
+
+                this.blockTypes[k] = {
+                    textures: []
+                };
+
+                if(t.textures instanceof Array){
+                    for(let i =0; i<t.texture.length; ++i){
+                        textureSet.add(t.texture[i]);
+                        this.blockTypes[k].textures.push(t.texture[i]);
+                    }
+                }
+                else{
+                    for(let i = 0; i<6; ++i){
+                        textureSet.add(t.texture);
+                        this.blockTypes[k].textures.push(t.texture);
+                    }
+                }
+            }
+
+            const textureBlocks = [...textureSet];
+            for(let k in this.blockTypes) {
+                for(let i=0; i<6; ++i){
+                   this.blockTypes[k].textures[i] = textureBlocks.indexOf(this.blockTypes[k].textures[i]);
+                }
+            }
+
+            const path = './resources/blocks/';
+            const diffuse = new textures.TextureAtlas();
+            diffuse.Load('diffuse', textureBlocks.map(t => path + t));
+            diffuse.onLoad = () => {
+                this.materialOpaque.uniforms.diffuseMap.value = diffuse.Info['diffuse'].atlas;
+                this.materialTransparent.uniforms.diffuseMap.value = diffuse.Info['diffuse'].atlas;
+            };
+
+            const loader = new THREE.TextureLoader();
+            const noiseTexture = loader.load('/resources/simplex.png');
+            noiseTexture.wrapS = THREE.RepeatWrapping;
+            noiseTexture.wrapT = THREE.RepeatWrapping;
+            noiseTexture.minFilter = THREE.LinearMipMapLinearFilter;
+            noiseTexture.maxFilter = THREE.NearestFilter;
+            this.materialOpaque.uniforms.noiseMap.value = noiseTexture;
+            this.materialTransparent.uniforms.noiseMap.value = noiseTexture;
         }
 
 
