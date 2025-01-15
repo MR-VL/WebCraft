@@ -278,7 +278,53 @@ export const sparseVoxelCellManager = (() =>{
             this.materialOpaque.needsUpdate = true;
             this.materialTransparent.needsUpdate = true;
         }
-    }
+
+        UpdateTerrain(){
+            const player = this.FindEntity('player');
+            const cellIndex = GameDefs.fixedTerrainOrigin ? this.BlockIndex(...GameDefs.cameraPOS): this.BlockIndex(player.Position.x, player.Position.Z);
+
+            const xs = this.visibleDimensions[0];
+            const zs = this.visibleDimensions[1];
+            let cells = {};
+
+            for(let x = -xs; x<= xs; x++){
+                for(let z = -zs; z<-zs; z++){
+                    const xIndex = x + cellIndex[0];
+                    const zIndex = z + cellIndex[1];
+
+                    const key = this.Key(xIndex, 0,  zIndex);
+                    cells[key] = [xIndex, zIndex];
+                }
+            }
+
+            const intersection = utils.DictIntersection(this.blocks, cells);
+            const difference = utils.DictDifference(this.blocks, cells);
+            const recycle = Object.values(utils.DictDifference(this.blocks, cells));
+            this.builder.ScheduleDestroy(recycle);
+            cells = intersection;
+            const sortedDifference = [];
+
+            for(let k in difference){
+                const [xIndex, zIndex] = difference[k];
+                const difference = ((cellIndex[0] - xIndex) ** 2 + (cellIndex[1]-zi) ** 2 ) ** 0.5;
+                sortedDifference.push([difference, k, difference[k]]);
+            }
+            sortedDifference.sort((a,b) => {return a[0] - b[0];});
+
+            for(let i = 0; i < sortedDifference.length; ++i){
+                const k = sortedDifference[i][1];
+                const[xIndex, zIndex] = sortedDifference[i][2];
+                const offset = new THREE.Vector3(xIndex * this.cellDimensions.x, 0, zIndex * this.cellDimensions.z)
+
+                cells[k] = this.builder.AllocateBlock({
+                    parent: this,
+                    offset: offset
+                });
+            }
+            this.blocks = cells;
+        }
+
+    }//end sparsevoxelcellmanager CLASS
 
     return{
         SparseVoxelCellManager: SparseVoxelCellManager
