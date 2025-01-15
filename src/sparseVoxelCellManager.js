@@ -144,6 +144,49 @@ export const sparseVoxelCellManager = (() =>{
             return null;
         }
 
+        GetAdjacentBlocks(xPositive, zPositive) {
+            const blocks = [];
+            for(let xi = -1; xi <=1; ++xi){
+                for(let zi = -1; zi <= 1; ++zi){
+                    if(xi === 0 && zi === 0){
+                        continue;
+                    }
+                    const [currentX, currentZ] = this.BlockIndex(xPositive, zPositive);
+                    const key = this.Key(currentX + xi, 0, currentZ + zi);
+                    if(key in this.blocks){
+                        blocks.push(this.blocks[key]);
+                    }
+                }
+            }
+            return blocks;
+        }
+
+        InsertVoxelAt(position, type, skippable){
+            const block = this.FindBlock(position[0], position[2]);
+            if(!block){
+                return;
+            }
+
+            block.InsertVoxelAt(position, type, skippable);
+        }
+
+        RemoveVoxelAt(position){
+            const block = this.FindBlock(position[0], position[2]);
+            if(!block){
+                return;
+            }
+            block.RemoveVoxelAt(position);
+        }
+
+        HasVoxelAt(x, y, z){
+            const block = this.FindBlock(x, z);
+            if(!block){
+                return false;
+            }
+
+            return block.HasVoxelAt(x, y, z);
+        }
+
     }
 
     return{
