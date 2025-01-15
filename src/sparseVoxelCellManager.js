@@ -245,8 +245,39 @@ export const sparseVoxelCellManager = (() =>{
             return intersections;
         }
 
+        Update(timeElapsed){
+            this.builder.Update(timeElapsed);
+            if(!this.builder.Busy){
+                this.UpdateTerrain();
+            }
 
+            this.totalTime += timeElapsed;
+            this.materialOpaque.uniforms.fogTime.value = this.totalTime * 0.5;
+            this.materialTransparent.uniforms.fogTime.value = this.totalTime * 0.5;
+            this.materialTransparent.uniforms.flow.value = this.totalTime * 0.5;
 
+            const threejs = this.FindEntity('renderer').GetComponent('ThreeJSController');
+            threejs.sky.material.uniforms.whiteBlend.value = this.builder.currentTime;
+            const player = this.FindEntity('player');
+
+            if(player.Position.y < 6 && !GameDefs.skipOceans){
+                this.materialOpaque.uniforms.fogRange.value.set(...defs.UnderWaterRange);
+                this.materialTransparent.uniforms.fogRange.value.set(...defs.UnderWaterRange);
+                this.materialOpaque.uniforms.fogColor.value.copy(defs.UnderWaterColor);
+                this.materialTransparent.uniforms.fogColor.value.copy(defs.UnderWaterColor);
+                threejs.sky.material.uniforms.bottomColor.value.copy(defs.UnderWaterColor);
+            }
+            else{
+                this.materialOpaque.uniforms.fogRange.value.set(...defs.FogRange);
+                this.materialTransparent.uniforms.fogRange.value.set(...defs.FogRange);
+                this.materialOpaque.uniforms.fogColor.value.copy(defs.FogColor);
+                this.materialTransparent.uniforms.fogColor.value.copy(defs.FogColor);
+            }
+
+            threejs.sky.material.needsUpdate = true;
+            this.materialOpaque.needsUpdate = true;
+            this.materialTransparent.needsUpdate = true;
+        }
     }
 
     return{
