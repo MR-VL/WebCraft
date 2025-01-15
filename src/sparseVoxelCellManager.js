@@ -32,13 +32,47 @@ export const sparseVoxelCellManager = (() =>{
                 uniforms: {
                     diffuseMap:{
                         value: null
+                    },
+                    noiseMap:{
+                        value: null
+                    },
+                    fogColor:{
+                        value: defs.fogColor.clone()
+                    },
+                    fogDensity:{
+                        value: 0.000065
+                    },
+                    fogRange:{
+                        value: new THREE.Vector2(250,250)
+                    },
+                    fogTime:{
+                        value: 0.0
+                    },
+                    fade:{
+                        value: 1.0
+                    },
+                    flow:{
+                        value: 0.0
                     }
                 },
 
-            })
+                vertexShader: voxelShader.VOXEL.vectorShader,
+                fragmentShader: voxelShader.VOXEL.precisionShader,
+                side: THREE.FrontSide
+            });
+            this.materialTransparent = this.materialOpaque.clone();
+            this.materialTransparent.side = THREE.FrontSide;
+            this.materialTransparent.transparent = true;
 
+            this.LoadTextures();
 
-
+            this.builder = new voxelBuilderThreaded.VoxelBuilderThreaded({
+                scene: this.scene,
+                dimensions: this.cellDimensions,
+                materialOpaque: this.materialOpaque,
+                materialTransparent: this.materialTransparent,
+                blockTypes: this.blockTypes,
+            });
         }
 
 
