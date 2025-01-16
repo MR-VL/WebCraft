@@ -135,6 +135,64 @@ export const playerController = (() => {
             this.keys.enter = true;
         }
 
+        SetupPointerLock(){
+            const hasPointerLock = ('pointerLockElement' in document ||  'mozPointerLockElement' in document || 'webkitPointerLockElement' in document);
+
+            if(hasPointerLock){
+                const lockChange = (event) => {
+                    if(document.pointerLockElement === document.body|| document.mozPointerLockElement === document.body || document.webkitPointerLockElement === document.body){
+                        this.enabled = ture;
+                        this.controls.enabled = true;
+                    }
+                    else{
+                        this.controls.enabled = false;
+                    }
+                };
+
+                const lockError = (event) => {
+                    console.log("lockError", event);
+                };
+
+                document.addEventListener('pointerlockchange', lockChange, false);
+                document.addEventListener('webkitpointerlockchange', lockChange, false);
+                document.addEventListener('onpointerlockchange', lockChange, false);
+                document.addEventListener('pointerlockerror', lockError, false);
+                document.addEventListener('onpointerlockerror', lockError, false);
+                document.addEventListener('webkitpointerlockerror', lockError, false);
+
+                this.element.addEventListener('click', (event) => {
+                    document.body.requestPointerLock(document.body.requestPointerLock ||
+                        document.body.mozRequestPointerLock ||
+                        document.body.webkitRequestPointerLock
+                    );
+
+                    if (/Firefox/i.test(navigator.userAgent)) {
+                        const fullScreenChange = (event) => {
+                            if (document.fullscreenElement === document.body ||
+                                document.mozFullscreenElement === document.body ||
+                                document.mozFullScreenElement === document.body) {
+                                document.removeEventListener('fullscreenchange', fullScreenChange);
+                                document.removeEventListener('mozfullscreenchange', fullScreenChange);
+                                document.body.requestPointerLock();
+                            }
+                        };
+                        document.addEventListener(
+                            'fullscreenchange', fullScreenChange, false);
+                        document.addEventListener(
+                            'mozfullscreenchange', fullScreenChange, false);
+                        document.body.requestFullscreen = (
+                            document.body.requestFullscreen ||
+                            document.body.mozRequestFullscreen ||
+                            document.body.mozRequestFullScreen ||
+                            document.body.webkitRequestFullscreen);
+                        document.body.requestFullscreen();
+                    }
+                    else {
+                        document.body.requestPointerLock();
+                    }
+                }, false);
+            }//end pointerlock if stmt
+        }//end setupPointerlock
 
 
 
