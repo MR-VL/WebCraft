@@ -52,6 +52,41 @@ export const playerController = (() => {
             document.addEventListener('keyup', (event) => this.OnKeyUp(event), false);
         }
 
+        OnKeyDown(event){
+            switch (event.keyCode){
+                case 38: //up arrow
+                case 87: // w key
+                    this.keys.forward = true;
+                    break;
+
+                case 37: //left arrow
+                case 65: // a key
+                    this.keys.left = true;
+                    break;
+
+                case 40: //down arrow
+                case 83: // s key
+                    this.keys.backward = true;
+                    break;
+
+                case 39: //right arrow
+                case 68: //d key
+                    this.keys.right = true;
+                    break;
+
+                case 32: //space
+                    if(this.standing){
+                        this.velocity.y = -this.acceleration.y;
+                        this.standing = false;
+                    }
+                    break;
+            }
+        }
+
+        OnKeyUp(event){
+
+        }
+
 
     }
     return{
