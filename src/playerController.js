@@ -84,7 +84,51 @@ export const playerController = (() => {
         }
 
         OnKeyUp(event){
+            switch (event.keyCode){
+                case 38: //up arrow
+                case 87: // w key
+                    this.keys.forward = false;
+                    break;
 
+                case 37: //left arrow
+                case 65: // a key
+                    this.keys.left = false;
+                    break;
+
+                case 40: //down arrow
+                case 83: // s key
+                    this.keys.backward = false;
+                    break;
+
+                case 39: //right arrow
+                case 68: //d key
+                    this.keys.right = false;
+                    break;
+
+                case 84: // t key
+                    this.OnCycleTools();
+                    break;
+
+                case 219: // [ key
+                    this.OnCycleTextures(-1);
+                    break;
+
+                case 221: // ] key
+                    this.OnCycleTextures(1);
+                    break;
+
+                case 189: // - key
+                    this.cells.ChangeActiveTool(-1);
+                    break;
+
+                case 187: // = key
+                    this.cells.ChangeActiveTool(1);
+                    break;
+
+                case 13: //enter key
+                    this.keys.enter = true;
+                    break;
+            }
         }
 
 
