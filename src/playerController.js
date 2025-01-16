@@ -1,4 +1,4 @@
- import * as THREE from "three";
+import * as THREE from "three";
 import {PointerLockControls} from "three/examples/jsm/controls/PointerLockControls.js";
 import {entity} from "./Entity.js";
 import {GameDefs} from "./Game-defs.js";
@@ -193,6 +193,25 @@ export const playerController = (() => {
                 }, false);
             }//end pointerlock if stmt
         }//end setupPointerlock
+
+        FindIntersections(boxes, position){
+            const sphere = new THREE.Sphere(position, this.radius);
+            return boxes.filter(b => {
+                return sphere.intersectsBox(b);
+            });
+        }
+
+        OnCycleTools(){
+            const ui = this.FindEntity('ui').GetComponent('UIController');
+            ui.CycleTool();
+        }
+
+        OnCycleTextures(directory){
+            const ui = this.FindEntity('ui').GetComponent('UIController');
+            ui.CycleBuildIcon(directory);
+        }
+
+
 
 
 
