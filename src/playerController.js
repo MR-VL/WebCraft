@@ -131,6 +131,12 @@ export const playerController = (() => {
             }
         }
 
+        OnMouseUp(event){
+            this.keys.enter = true;
+        }
+
+
+
 
     }
     return{
