@@ -58,10 +58,24 @@ export const cloudController = (function(){
             this.CreateSun();
         }
 
+        CreateSun(){
+            const geometry = new THREE.PlaneGeometry(300, 300);
 
-
+            const material = new THREE.ShaderMaterial({
+                uniforms: {},
+                vertexShader: voxelShader.SUN.vectorShader,
+                fragmentShader: voxelShader.SUN.precisionShader,
+                side: THREE.FrontSide,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+            });
+            const sun = new THREE.Mesh(geometry, material);
+            sun.position.set(692, 39, -286);
+            sun.rotateX(0.5 * 2.0 * Math.PI);
+            sun.lookAt(0, 0, 0);
+            this.group.add(sun);
+        }
     }
-
 
     return {
         CloudController:CloudController
