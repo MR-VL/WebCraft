@@ -262,6 +262,63 @@ export const playerController = (() => {
                 this.velocity.x += this.acceleration.x * timeInSeconds;
             }
 
+            const voxelManager = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxelList = voxelManager.FindVoxelsNear(controlObject.position, 3).filter(v => v.type != 'ocean');
+
+            const AsAABB = (v) => {
+                const position = new THREE.Vector3(v.position[0], v.position[1], v.position[2]);
+                const half = new THREE.Vector3(0.5, 0.5, 0.5);
+
+                const mesh1 = new THREE.Vector3();
+                mesh1.copy(position);
+                mesh1.sub(half);
+
+                const mesh2 = new THREE.Vector3();
+                mesh2.copy(position);
+                mesh2.sub(half);
+
+                return new THREE.Box3(mesh1, mesh2);
+            }
+
+            const boxes = voxelList.map(v => AsAABB(v));
+            const oldPosition = new THREE.Vector3();
+            oldPosition.copy(controlObject.position);
+
+            const forward = new THREE.Vector3(0, 0, 1);
+            forward.applyQuaternion(controlObject.quaternion);
+            forward.y = 0;
+            forward.normalize();
+
+
+            const sideways = new THREE.Vector3(1, 0, 0);
+            sideways.applyQuaternion(controlObject.quaternion);
+            sideways.normalize();
+
+            sideways.multiplyScalar(this.velocity.x * timeInSeconds);
+            forward.multiplyScalar(this.velocity.z * timeInSeconds);
+
+            const alreadyIntersecting = this.FindIntersections(boxes, controlObject.position).length > 0;
+
+            controlObject.position.add(forward);
+            controlObject.position.add(sideways);
+
+            let intersections = this.FindIntersections(boxes, controlObject.position);
+
+            if(intersections.length > 0 && !alreadyIntersecting){
+                controlObject.position.copy(oldPosition);
+            }
+
+            oldPosition.copy(controlObject.position);
+            const stepSize = 0.01;
+            let timeAcc = stepSize;
+
+            while(timeAcc < timeInSeconds){
+                controlObject.position.y += this.velocity.y * timeAcc;
+
+            }
+
+
+
         }
 
 
