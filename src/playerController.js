@@ -211,7 +211,58 @@ export const playerController = (() => {
             ui.CycleBuildIcon(directory);
         }
 
+        Update(timeInSeconds){
+            const controlObject = this.controls.getObject();
+            const demo = false;
+            if(demo){
+                controlObject.position.x += timeInSeconds * 5;
+                controlObject.position.z += timeInSeconds * 5;
+                this.Parent.SetPosition(controlObject.position);
+                this.Parent.Position.x += 220;
+                this.Parent.Position.z += 220;
+                return;
+            }
 
+            if(this.keys.enter){
+                this.Broadcast({topic: 'input.pressed', value:'enter'});
+            }
+
+            this.keys.enter = false;
+            const velocity = this.velocity;
+            const frameDeceleration = new THREE.Vector3(
+                this.velocity.x * this.decceleration,
+                this.decceleration.y,
+                this.velocity.z * this.decceleration.z
+            );
+
+            frameDeceleration.multiplyScalar(timeInSeconds);
+            frameDeceleration.z = Math.sign(frameDeceleration.z) * Math.min(Math.abs(frameDeceleration.z), Math.abs(velocity.z));
+
+            if(GameDefs.skipGravity){
+                frameDeceleration.y = Math.sign(frameDeceleration.y) * Math.min(Math.abs(frameDeceleration.y), Math.abs(velocity.y));
+            }
+//todo fix gravity and make it stronger so that im not bouncing around
+            this.velocity.add(frameDeceleration);
+
+            if(!GameDefs.skipGravity){
+                this.velocity.y = Math.max(this.velocity.y, -50);
+            }
+
+            if(this.keys.forward){
+                this.velocity.z -= this.acceleration.z * timeInSeconds;
+            }
+            if(this.keys.backward){
+                this.velocity.z += this.acceleration.z * timeInSeconds;
+            }
+
+            if(this.keys.left){
+                this.velocity.x -= this.acceleration.x * timeInSeconds;
+            }
+            if(this.keys.right){
+                this.velocity.x += this.acceleration.x * timeInSeconds;
+            }
+
+        }
 
 
 
