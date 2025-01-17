@@ -314,17 +314,28 @@ export const playerController = (() => {
 
             while(timeAcc < timeInSeconds){
                 controlObject.position.y += this.velocity.y * timeAcc;
-
+                intersections = this.FindIntersections(boxes, controlObject.position);
+                if(intersections.length > 0){
+                    controlObject.position.copy(oldPosition);
+                    this.velocity.y = Math.max(0, this.velocity.y);
+                    this.standing = true;
+                    break;
+                }
+                timeAcc = Math.min(timeAcc + stepSize, timeInSeconds);
             }
 
+            if(controlObject.position.y < -100){
+                this.velocity.y = 0;
+                controlObject.position.y = 250;
+                this.standing = true;
+            }
 
-
+            this.Parent.SetPosition(controlObject.position);
+            this.Parent.SetQuaternion(controlObject.quaternion);
         }
-
-
-
     }
+
     return{
         PlayerController: PlayerController
-    }
+    };
 })();
