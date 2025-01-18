@@ -6,6 +6,26 @@ import {GameDefs} from "./Game-defs.js";
 
 export const voxelTools = (() =>{
     class VoxelToolsInsert extends entity.Component{
+        static className = "VoxelToolsInsert";
+
+        get Name(){
+            return VoxelToolsInsert.className;
+        }
+
+        constructor() {
+            super();
+            this.voxelType = 'stone';
+            this.timer = 0;
+            this.active = false;
+        }
+
+        InitComponent(){
+            this.RegisterHandler('input.pressed', (message) => this.onInput(message));
+            this.RegisterHandler('ui.blockChanged', (message) => this.OnBlockIcon(message));
+            this.RegisterHandler('ui.toolChanged', (message) => this.OnToolChanged(message));
+        }
+
+
 
     }
 
