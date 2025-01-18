@@ -25,6 +25,37 @@ export const voxelTools = (() =>{
             this.RegisterHandler('ui.toolChanged', (message) => this.OnToolChanged(message));
         }
 
+        OnToolChanged(message){
+            if (!GameDefs.showTools){
+                return;
+            }
+
+            if(message.value !== 'build'){
+                this.LoseFocus();
+            }
+            else{
+                this.GainFocus();
+            }
+        }
+
+        LoseFocus(){
+            this.voxelMeshGroup.visible = false;
+            this.placementMesh.visible = false;
+            this.active = false;
+        }
+
+
+        GainFocus(){
+            this.voxelMeshGroup.visible = true;
+            this.placementMesh.visible = true;
+            this.active = true;
+        }
+
+        OnBlockIcon(message){
+            this.voxelType = message.value;
+            this.UpdateVoxelMesh();
+        }
+
 
 
     }
