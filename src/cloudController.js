@@ -75,6 +75,23 @@ export const cloudController = (function(){
             sun.lookAt(0, 0, 0);
             this.group.add(sun);
         }
+
+        Update(){
+            const player = this.FindEntity('player');
+            const cameraPosition = player.Position;
+
+            this.group.position.set(cameraPosition.x, 250, cameraPosition.z);
+
+            for(let i =0; i<this.clouds.length; ++i){
+                const cloud = this.clouds[i];
+                cloud.updateMatrixWorld(true);
+                const material = cloud.material;
+                material.uniforms.cloudMin.value = new THREE.Vector3(-0.5, -0.5, -0.5);
+                material.uniforms.cloudMax.value = new THREE.Vector3(0.5, 0.5, 0.5);
+                material.uniforms.cloudMin.value.applyMatrix4(cloud.matrixWorld);
+                material.uniforms.cloudMax.value.applyMatrix4(cloud.matrixWorld);
+            }
+        }
     }
 
     return {
