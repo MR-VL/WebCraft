@@ -71,6 +71,43 @@ export const voxelTools = (() =>{
             this.voxelMesh.geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(uvSlices, 1));
         }
 
+        InitEntity(){
+            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene;
+            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera;
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+
+            const placement1 = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: {value: 0.0},
+                    edgeColor: {value: new THREE.Color(0x000000)}
+                },
+                vertexShader: voxelShader.PLACEMENT.vectorShader,
+                fragmentShader: voxelShader.PLACEMENT.precisionShader,
+                side: THREE.FrontSide,
+                blending: THREE.NormalBlending,
+                transparent: true,
+                depthWrite: false
+            });
+
+            const placement2 = placement1.clone();
+            placement2.side = THREE.BackSide;
+
+            const mesh1 = new THREE.Mesh(geometry, placement1);
+            const mesh2 = new THREE.Mesh(geometry, placement2);
+
+            mesh1.renderOrder = 1;
+
+            this.placementMesh = new THREE.Group();
+            this.placementMesh.add(mesh1);
+            this.placementMesh.add(mesh2);
+            this.placementMesh.scale.setScalar(0.999);
+            this.material1 = placement1;
+            this.material2 = placement2;
+
+            const voxelGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+
+        }
 
 
 
