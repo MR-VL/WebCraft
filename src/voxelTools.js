@@ -106,18 +106,41 @@ export const voxelTools = (() =>{
             this.material2 = placement2;
 
             const voxelGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
+            this.voxelMesh = new THREE.Mesh(voxelGeometry, voxels.materialOpaque.clone());
+            this.voxelMesh.position.set(1.25, -1.25, -4);
+            this.voxelMesh.rotateY(0.125 * 2 * Math.PI);
+            this.voxelMesh.material.depthWrite = false;
+            this.voxelMesh.material.depthTest = false;
+            this.voxelMeshGroup = new THREE.Group();
+            this.voxelMeshGroup.add(this.voxelMesh);
+            this.voxelMeshGroup.position.set(0, 0, 2);
+            this.voxelMeshRotationEnd = this.voxelMeshGroup.quaternion.clone();
+            this.voxelMeshGroup.rotateX(-0.125 * 2 * Math.PI);
+            this.voxelMeshRotationStart = this.voxelMeshGroup.quaternion.clone();
+            this.voxelMeshGroup.quaternion.identity();
 
+            camera.add(this.voxelMeshGroup);
+            const rotateFrames = new THREE.QuaternionKeyframeTrack(
+                '.quaternion',
+                [0, 1],
+                [...this.voxelMeshRotationStart.toArray(), this.voxelMeshRotationEnd.toArray()]
+            );
+
+            const rotateClip = new THREE.AnimationClip('rotation', -1, [rotateFrames]);
+            this.mixer = new THREE.AnimationMixer(this.voxelMeshGroup);
+            this.action = this.mixer.clipAction(rotateClip);
+
+            scene.add(this.placementMesh);
+            this.UpdateVoxelMesh();
+            this.LoseFocus();
         }
 
 
-
-
-
-    }
+    }//end voxel tools insert
 
     class VoxelToolsDelete extends entity.Component{
 
-    }
+    }//end voxel tools delete
 
     return{
       VoxelToolsInsert:VoxelToolsInsert,
