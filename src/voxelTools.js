@@ -8,6 +8,7 @@ export const voxelTools = (() =>{
     class VoxelToolsInsert extends entity.Component{
         static className = "VoxelToolsInsert";
 
+
         get Name(){
             return VoxelToolsInsert.className;
         }
@@ -166,6 +167,44 @@ export const voxelTools = (() =>{
                 this.action.timeScale = 3.0;
                 this.action.reset();
                 this.action.play();
+            }
+        }
+
+        Update(timeInSeconds){
+            if(!this.active){
+                return;
+            }
+
+            this.mixer.update(timeInSeconds);
+            this.timer += timeInSeconds;
+            this.material1.uniforms.time.value = this.timer;
+            this.material2.uniforms.time.value = this.timer;
+            this.material1.needsUpdate = true;
+            this.material2.needsUpdate = true;
+
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            this.voxelMesh.material.uniforms.diffuseMap.value = voxels.materialOpaque.uniforms.diffuseMap.value;
+            this.placementMesh.visible = false;
+
+            const player = this.FindEntity('player');
+            const forward = new THREE.Vector3(0, 0, -1);
+            forward.applyQuaternion(player.quaternion);
+            const ray = new THREE.Ray(player.Position, forward);
+            const intersections = voxels.FindIntersectionsWithRay(ray, 5). filter(i => i.voxel.visible);
+
+            if(!intersections.length){
+                return;
+            }
+
+            const possibleCoordinates = [...intersections[0].voxel.position];
+            const coordinates = this.FindClosestSide(possibleCoordinates, ray);
+            if(!coordinates){
+                return;
+            }
+
+            if(!voxels.HasVoxelAt(...coordinates) ){
+                this.placementMesh.position.set(...coordinates);
+                this.placementMesh.visible = true;
             }
         }
 
