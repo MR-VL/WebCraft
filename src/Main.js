@@ -6,3 +6,5 @@ import {entity} from "./Entity.js";
 import {cloudController} from "./cloudController.js";
 import {playerController} from "./playerController.js";
 import {voxelTools} from "./voxelTools.js";
+import {GameDefs} from "./Game-defs.js";
+import {uiController} from "./uiController.js";
