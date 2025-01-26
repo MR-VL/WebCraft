@@ -208,7 +208,55 @@ export const voxelTools = (() =>{
             }
         }
 
+        FindClosestSide(possibleCoordinates, ray) {
+            const sides = [
+                [...possibleCoordinates], [...possibleCoordinates], [...possibleCoordinates],
+                [...possibleCoordinates], [...possibleCoordinates], [...possibleCoordinates],
+            ];
+            sides[0][0] -= 1;
+            sides[1][0] += 1;
+            sides[2][1] -= 1;
+            sides[3][1] += 1;
+            sides[4][2] -= 1;
+            sides[5][2] += 1;
 
+            const AsAABB = (v) => {
+                const position = new THREE.Vector3(...v);
+                const half = new THREE.Vector3(0.5, 0.5, 0.5);
+
+                const mesh1 = new THREE.Vector3();
+                mesh1.copy(position);
+                mesh1.sub(half);
+
+                const mesh2 = new THREE.Vector3();
+                mesh2.copy(position);
+                mesh2.copy(position);
+
+                return new THREE.Box3(mesh1,mesh2);
+            }
+
+            const boxes = sides.map(v => AsAABB(v));
+            const tempV = new THREE.Vector3();
+
+            const intersections = [];
+            for(let i=0; i<boxes.length; ++i){
+                if(ray.intersectBox(boxes[i], tempV)){
+                    intersections.push({
+                        position: sides[i],
+                        distance: tempV.distanceTo(ray.origin)
+                    });
+                }
+            }
+
+            intersections.sort((a,b) => {
+                return a.distance - b.distance;
+            });
+
+            if(intersections.length > 0){
+                return intersections[0].position;
+            }
+            return null;
+        }
     }//end voxel tools insert
 
     class VoxelToolsDelete extends entity.Component{
