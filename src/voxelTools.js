@@ -376,6 +376,44 @@ export const voxelTools = (() =>{
             this.LoseFocus();
         }
 
+        OnInput(message){
+            if(!this.active){
+                return;
+            }
+
+            if(message.value == 'enter'){
+                this.PerformAction();
+            }
+        }
+
+        PerformAction(){
+            if(!this.active){
+                return;
+            }
+            if(!this.placementMesh.visible){
+                return;
+            }
+
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const possibleCoordinates = [
+                this.placementMesh.position.x, this.placementMesh.position.y,this.placementMesh.position.z
+            ];
+
+            if(voxels.HasVoxelAt(...possibleCoordinates)){
+                voxels.RemoveVoxelAt(possibleCoordinates);
+
+                if(this.action){
+                    this.action.setLoop(THREE.LoopOnce, 1);
+                    this.action.clampWhenFinished = true;
+                    this.action.timeScale = 10.0;
+                    this.action.reset();
+                    this.action.play();
+                }
+            }
+        }
+
+
+
 
 
     }//end voxel tools delete
