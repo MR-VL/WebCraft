@@ -412,10 +412,39 @@ export const voxelTools = (() =>{
             }
         }
 
+        Update(timeInSeconds){
+            if(!this.active){
+                return;
+            }
 
+            if(this.mixer){
+                this.mixer.update(timeInSeconds)
+            }
 
+            this.timer += timeInSeconds;
+            this.material1.uniforms.time.value = this.timer;
+            this.material2.uniforms.time.value = this.timer;
+            this.material1.needsUpdate = true;
+            this.material2.needsUpdate = true;
 
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
 
+            const player = this.FindEntity('player');
+            const forward = new THREE.Vector3(0, 0, -1);
+            forward.applyQuaternion(player.quaternion);
+
+            const ray = new THREE.Ray(player.Position, forward);
+            const intersections = voxels.FindIntersectionsWithRay(ray, 4);
+            if(!intersections.length){
+                return;
+            }
+
+            const possibleCoordinates = [...intersections[0].voxel.position];
+            if(voxels.HasVoxelAt(...possibleCoordinates)){
+                this.placementMesh.position.set(...possibleCoordinates);
+                this.placementMesh.visible = true;
+            }
+        }
     }//end voxel tools delete
 
     return{
