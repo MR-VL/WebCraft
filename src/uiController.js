@@ -30,8 +30,50 @@ export const uiController = (() => {
                 }
 
                 ent.className = 'icon-bar-item';
+                ent.style = "background-image: url('./resources/Blocks/" + textureName + "');";
+                ent.blockType = block;
 
+                this.iconbar.appendChild(ent);
+                this.icons.push(ent);
             }
+
+            this.toolTypes = ['build', 'break'];
+            this.toolIndex = 0;
+            this.iconIndex = 0;
+            this.icons[0].classList.toggle('highlight');
+            this.UpdateToolBlockType();
+            this.UpdateToolType();
+
+            if(!GameDefs.showTools){
+                this.iconbar.style.display = 'none';
+            }
+        }
+
+        CycleBuildIcon(direction){
+            this.icons[this.iconIndex].classList.remove('highlight');
+            this.iconIndex = (this.iconIndex + this.icons.length + direction) % this.icons.length;
+            this.UpdateToolBlockType();
+        }
+
+        CycleTool(){
+            this.toolIndex = (this.toolIndex + 1) % this.toolTypes.length;
+            this.UpdateToolType();
+        }
+
+        UpdateToolBlockType(){
+            const player = this.FindEntity('player');
+            player.BroadCast({
+                topic: 'ui.blockChanged',
+                value: this.icons[this.iconIndex].blockType
+            });
+        }
+
+        UpdateToolType(){
+            const player = this.FindEntity('player');
+            player.BroadCast({
+                topic: 'ui.toolChanged',
+                value: this.toolTypes[this.toolIndex]
+            });
         }
     }
 
