@@ -8,3 +8,32 @@ import {playerController} from "./playerController.js";
 import {voxelTools} from "./voxelTools.js";
 import {GameDefs} from "./Game-defs.js";
 import {uiController} from "./uiController.js";
+import {defs} from "./defs.js";
+
+class WebCraft{
+    constructor() {
+        this.Initialize();
+    }
+
+    Initialize() {
+        this.entityManager = new entityManager.EntityManager();
+        this.LoadControllers();
+        this.previousRAF = null;
+        this.RAF();
+    }
+
+    LoadControllers() {
+
+    }
+
+    RAF(){
+
+    }
+
+}
+
+let APP = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+    APP = new WebCraft();
+});
