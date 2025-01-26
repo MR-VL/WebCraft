@@ -292,6 +292,63 @@ export const voxelTools = (() =>{
             }
         }
 
+        LoseFocus(){
+            this.balls.visible = false;
+            this.placementMesh.visible = false;
+            this.active = false;
+        }
+
+        GainFocus(){
+            this.balls.visible = true;
+            this.placementMesh.visible = true;
+            this.active = true;
+        }
+
+        LoadModel(){
+            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene;
+            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera;
+            this.balls = new THREE.Group();
+            camera.add(this.balls);
+
+            const loader = new GLTFLoader();
+            //todo add texture
+            loader.load('./resources/pickaxe/scene.gltf', (gltf) => {
+                gltf.scene.traverse(current => {
+                    if(current.material){
+                        current.material.depthWrite = false;
+                        current.material.depthTest = false;
+                    }
+                });
+
+                this.mesh = gltf.scene;
+                this.mesh.position.set(2, 2, 1);
+                this.mesh.scale.setScalar(0.1);
+                this.mesh.rotateZ(0.25 * 2 * Math.PI);
+                this.mesh.rotateY(-0.1 * 2 * Math.PI);
+
+                this.group = new THREE.Group();
+                this.group.add(this.mesh);
+                this.group.position.set(0, -3, -4);
+                const endRotation = this.group.quaternion.clone();
+                this.group.rotateX(-0.25 * 2 * Math.PI);
+                const startRotation = this.group.quaternion.clone();
+                this.group.quaternion.identity();
+
+                this.balls.add(this.group);
+                const rotationFrames = new THREE.QuaternionKeyframeTrack(
+                    '.quaternion',
+                    [0, 1, 2],
+                    [...endRotation.toArray(), ...startRotation.toArray(), ...endRotation.toArray()]
+                );
+
+                const rotationClip = new THREE.AnimationClip('rotation', -1, [rotationFrames]);
+                this.mixer = new THREE.AnimationMixer(this.group);
+                this.action = this.mixer.clipAction(rotationClip);
+            });
+
+
+        }
+
 
 
     }//end voxel tools delete
