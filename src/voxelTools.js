@@ -346,7 +346,34 @@ export const voxelTools = (() =>{
                 this.action = this.mixer.clipAction(rotationClip);
             });
 
+            const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+            const position1 = new THREE.ShaderMaterial({
+                uniforms:{
+                    time: {value:0.0},
+                    edgeColor: {value: new THREE.Color(0xFF0000)}
+                },
+                vertexShader:voxelShader.PLACEMENT.vectorShader,
+                fragmentShader:voxelShader.PLACEMENT.precisionShader,
+                side: THREE.FrontSide,
+                blending: THREE.NormalBlending,
+                transparent: true,
+                depthWrite: false,
+            });
 
+            const position2 = position1.clone();
+            position2.side = THREE.BackSide;
+
+            const mesh1 = new THREE.Mesh(geometry, position1);
+            const mesh2 = new THREE.Mesh(geometry, position2);
+            mesh1.renderOrder = 1;
+            this.placementMesh = new THREE.Group();
+            this.placementMesh.add(mesh1);
+            this.placementMesh.add(mesh2);
+            this.placementMesh.scale.setScalar(1.0001);
+            this.material1 = position1;
+            this.material2 = position2;
+            scene.add(this.placementMesh);
+            this.LoseFocus();
         }
 
 
