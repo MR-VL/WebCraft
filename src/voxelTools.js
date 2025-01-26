@@ -260,6 +260,39 @@ export const voxelTools = (() =>{
     }//end voxel tools insert
 
     class VoxelToolsDelete extends entity.Component{
+        static className = 'VoxelToolsDelete';
+        get Name(){
+            return VoxelToolsDelete.className;
+        }
+
+        constructor() {
+            super();
+            this.timer = 0;
+            this.active = true;
+        }
+
+        InitEntity(){
+            this.LoadModel();
+        }
+
+        InitComponent(){
+            this.RegisterHandler('input.pressed', (message) => this.OnInput(message));
+            this.RegisterHandler('ui.toolChanged', (message) => this.OnToolChanged(message));
+        }
+
+        OnToolChanged(message){
+            if(!GameDefs.showTools){
+                return;
+            }
+            if(message.value != 'break'){
+                this.LoseFocus();
+            }
+            else{
+                this.GainFocus();
+            }
+        }
+
+
 
     }//end voxel tools delete
 
