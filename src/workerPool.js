@@ -8,7 +8,7 @@ export const workerPool = (() => {
                 this.OnMessage(event);
             };
             this.resolve = null;
-            this.id = ids++;
+            this.id_ = ids++;
         }
 
         OnMessage(event){
@@ -18,7 +18,7 @@ export const workerPool = (() => {
         }
 
         get id(){
-            return this.id;
+            return this.id_;
         }
 
         postMessage(message, resolve){

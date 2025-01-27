@@ -38,7 +38,7 @@ export const sparseVoxelCellManager = (() =>{
                         value: null
                     },
                     fogColor:{
-                        value: defs.fogColor.clone()
+                        value: defs.FogColor.clone()
                     },
                     fogDensity:{
                         value: 0.000065
