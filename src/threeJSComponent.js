@@ -71,7 +71,7 @@ export const threeJSComponents = (() =>{
     class ThreeJSController extends entity.Component{
         static className = "ThreeJSController";
 
-        get Name(){
+        get NAME(){
             return ThreeJSController.className;
         }
 

@@ -70,7 +70,7 @@ export const entity = (() => {
             //pass current obj to set it as parent
             component.SetParent(this);
             //store name and associate it with val
-            this.components[component.name] = component;
+            this.components[component.NAME] = component;
             //initialize it
             component.InitComponent();
         }
