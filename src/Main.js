@@ -27,10 +27,10 @@ class WebCraft{
         threejs.AddComponent(new threeJSComponents.ThreeJSController());
         this.entityManager.Add(threejs, 'renderer');
 
-        this.renderer = threejs.GetComponent('THREEJSController');
-        this.scene = threejs.GetComponent('THREEJSController').scene;
-        this.camera = threejs.GetComponent('THREEJSController').camera;
-        this.threejs = threejs.GetComponent('THREEJSController').threejs;
+        this.renderer = threejs.GetComponent('ThreeJSController');
+        this.scene = threejs.GetComponent('ThreeJSController').scene;
+        this.camera = threejs.GetComponent('ThreeJSController').camera;
+        this.threejs = threejs.GetComponent('ThreeJSController').threejs;
 
         const voxelManager = new entity.Entity();
         voxelManager.AddComponent(new sparseVoxelCellManager.SparseVoxelCellManager({
