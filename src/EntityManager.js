@@ -4,7 +4,7 @@ export const entityManager = (() => {
         constructor() {
             this.ids = 0;
             this.entitiesMap = {};
-            this.entities = {};
+            this.entities = [];
         }
 
         GenerateName() {
