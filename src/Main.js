@@ -59,9 +59,25 @@ class WebCraft{
     }
 
     RAF(){
+        requestAnimationFrame((t) => {
+            if(this.previousRAF === null){
+                this.previousRAF = t;
+            }
 
+            this.Step(t - this.previousRAF);
+            this.renderer.Render();
+            this.previousRAF = t;
+
+            setTimeout(() => {
+                this.RAF();
+            }, 1);
+        });
     }
 
+    Step(timeElapsed){
+        const timeElapse = Math.min(1.0 / 30.0, timeElapsed * 0.001);
+        this.entityManager.Update(timeElapse);
+    }
 }
 
 let APP = null;
