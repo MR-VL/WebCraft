@@ -58,14 +58,15 @@ export const voxelTools = (() =>{
         }
 
         UpdateVoxelMesh(){
-            const voxelstmp = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxelstmp = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             const colors = [];
             const uvSlices = [];
+
 
             for(let i = 0; i < 6; ++i){
                 for(let j = 0; j < 4 * 3; ++j){
                     colors.push(1.0, 1.0, 1.0)
-                    uvSlices.push(voxelstmp.blockTypes[this.voxelType].textures[2]);
+                    uvSlices.push(voxelstmp.blockTypess[this.voxelType].textures[2]);
                 }
             }
             this.voxelMesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -75,7 +76,7 @@ export const voxelTools = (() =>{
         InitEntity(){
             const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene;
             const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera;
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
 
             const placement1 = new THREE.ShaderMaterial({
@@ -156,7 +157,7 @@ export const voxelTools = (() =>{
                 return;
             }
 
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             const possibleCoordinates = [this.placementMesh.position.x, this.placementMesh.position.y, this.placementMesh.position.z];
 
             if(!voxels.HasVoxelAt(...possibleCoordinates) ){
@@ -182,7 +183,7 @@ export const voxelTools = (() =>{
             this.material1.needsUpdate = true;
             this.material2.needsUpdate = true;
 
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             this.voxelMesh.material.uniforms.diffuseMap.value = voxels.materialOpaque.uniforms.diffuseMap.value;
             this.placementMesh.visible = false;
 
@@ -394,7 +395,7 @@ export const voxelTools = (() =>{
                 return;
             }
 
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             const possibleCoordinates = [
                 this.placementMesh.position.x, this.placementMesh.position.y,this.placementMesh.position.z
             ];
@@ -427,7 +428,7 @@ export const voxelTools = (() =>{
             this.material1.needsUpdate = true;
             this.material2.needsUpdate = true;
 
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
 
             const player = this.FindEntity('player');
             const forward = new THREE.Vector3(0, 0, -1);

@@ -262,7 +262,7 @@ export const playerController = (() => {
                 this.velocity.x += this.acceleration.x * timeInSeconds;
             }
 
-            const voxelManager = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxelManager = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
             const voxelList = voxelManager.FindVoxelsNear(controlObject.position, 3).filter(v => v.type != 'ocean');
 
             const AsAABB = (v) => {

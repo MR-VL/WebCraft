@@ -1172,7 +1172,7 @@ export const voxelBlockBuilder = (() => {
                 };
             }
 
-            data.voxels = voxels;
+            data.voxelss = voxels;
             return data;
         }
 
@@ -1198,7 +1198,7 @@ export const voxelBlockBuilder = (() => {
 
             this.RemoveExteriorVoxels(prunedVoxels);
             const data = this.BuildMeshDataFromVoxels(prunedVoxels);
-            data.voxels = existingVoxels;
+            data.voxelss = existingVoxels;
             return data;
         }
 

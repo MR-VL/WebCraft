@@ -38,7 +38,7 @@ class WebCraft{
             worldSize: GameDefs.worldSize
         }));
 
-        this.entityManager.Add(voxelManager, 'voxels');
+        this.entityManager.Add(voxelManager, 'voxelss');
 
         const clouds = new entity.Entity();
         clouds.AddComponent(new cloudController.CloudController());

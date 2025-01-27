@@ -77,12 +77,12 @@ export const sparseVoxelCellManager = (() =>{
         }
 
         LoadTextures(){
-            this.blockTypes = {};
+            this.blockTypess = {};
             const textureSet = new Set();
             for (let k in textureDefs.DEFS) {
                 const t = textureDefs.DEFS[k];
 
-                this.blockTypes[k] = {
+                this.blockTypess[k] = {
                     textures: []
                 };
 
