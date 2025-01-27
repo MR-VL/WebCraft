@@ -23,21 +23,21 @@ export const entityManager = (() => {
         }
 
         //adds a new entity
-        Add(entity, name) {
+        Add(en, name) {
             //if no name is provided generate a new name
             if (!name) {
                 name = this.GenerateName();
             }
             //map the name to the entity
-            this.entitiesMap[name] = entity;
+            this.entitiesMap[name] = en;
             //push the entity to the entities
-            this.entities.push(entity);
+            this.entities.push(en);
 
             //set its parent and name
-            entity.SetParent(this);
-            entity.SetName(name);
+            en.SetParent(this);
+            en.SetName(name);
             //initialize the entity
-            entity.InitEntity();
+            en.InitEntity();
         }
 
 
