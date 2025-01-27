@@ -58,14 +58,14 @@ export const voxelTools = (() =>{
         }
 
         UpdateVoxelMesh(){
-            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxelstmp = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
             const colors = [];
             const uvSlices = [];
 
             for(let i = 0; i < 6; ++i){
                 for(let j = 0; j < 4 * 3; ++j){
                     colors.push(1.0, 1.0, 1.0)
-                    uvSlices.push(voxels.blockTypes[this.voxelType].textures[2]);
+                    uvSlices.push(voxelstmp.blockTypes[this.voxelType].textures[2]);
                 }
             }
             this.voxelMesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
