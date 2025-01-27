@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
-import {EffectComposer} from "./EffectComposer.js";
-import {RenderPass} from "./RenderPass.js";
-import {ShaderPass} from "./ShaderPass.js";
+import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
+import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import {GammaCorrectionShader} from "three/examples/jsm/shaders/GammaCorrectionShader.js";
 import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";

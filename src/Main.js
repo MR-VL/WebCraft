@@ -48,8 +48,8 @@ class WebCraft{
         player.AddComponent(new playerController.PlayerController());
         player.AddComponent(new voxelTools.VoxelToolsInsert());
         player.AddComponent(new voxelTools.VoxelToolsDelete());
-        player.SetPosition(new THREE.Vector3(...GameDefs.playerPOS));
-        player.SetQuaternion(new THREE.Quaternion(...GameDefs.playerROT));
+        player.SetPosition(new THREE.Vector3(...defs.playerPOS));
+        player.SetQuaternion(new THREE.Quaternion(...defs.playerROT));
 
         this.entityManager.Add(player, 'player');
 
