@@ -236,7 +236,7 @@ export const voxelBuilderThreaded = (() => {
                 this.group.add(this.transparentMesh);
             }
 
-            this.voxels = data.voxels;
+            this.voxels = data.voxelss;
             this.lastBuildID = data.buildID;
         }
 
