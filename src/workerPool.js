@@ -3,7 +3,7 @@ export const workerPool = (() => {
 
     class WorkerThread{
         constructor(){
-            this.worker = new Worker(new URL('/src/voxel-builder-threaded-worker.js', import.meta.url), {type: 'module'});
+            this.worker = new Worker(new URL('/src/voxelBuilderThreadedWorker.js', import.meta.url), {type: 'module'});
             this.worker.onmessage = (event) => {
                 this.OnMessage(event);
             };
