@@ -1,4 +1,4 @@
-import SimplexNoise from 'SimplexNoise';
+import {simplex} from './simplexNoise.js';
 
 export const noise = (function(){
 
@@ -9,7 +9,7 @@ export const noise = (function(){
         }
 
         init(){
-            this.noise = new SimplexNoise(this.params.seed);
+            this.noise = new simplex.SimplexNoise(this.params.seed);
         }
 
         Get(x, y, z){
