@@ -69,6 +69,7 @@ export const voxelTools = (() =>{
                     uvSlices.push(voxelstmp.blockTypess[this.voxelType].textures[2]);
                 }
             }
+
             this.voxelMesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
             this.voxelMesh.geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(uvSlices, 1));
         }

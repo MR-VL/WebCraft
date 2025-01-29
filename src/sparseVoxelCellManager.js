@@ -72,7 +72,7 @@ export const sparseVoxelCellManager = (() =>{
                 dimensions: this.cellDimensions,
                 materialOpaque: this.materialOpaque,
                 materialTransparent: this.materialTransparent,
-                blockTypes: this.blockTypes,
+                blockTypes: this.blockTypess,
             });
         }
 
@@ -89,21 +89,21 @@ export const sparseVoxelCellManager = (() =>{
                 if(t.textures instanceof Array){
                     for(let i =0; i<t.texture.length; ++i){
                         textureSet.add(t.texture[i]);
-                        this.blockTypes[k].textures.push(t.texture[i]);
+                        this.blockTypess[k].textures.push(t.texture[i]);
                     }
                 }
                 else{
                     for(let i = 0; i<6; ++i){
                         textureSet.add(t.texture);
-                        this.blockTypes[k].textures.push(t.texture);
+                        this.blockTypess[k].textures.push(t.texture);
                     }
                 }
             }
 
             const textureBlocks = [...textureSet];
-            for(let k in this.blockTypes) {
+            for(let k in this.blockTypess) {
                 for(let i=0; i<6; ++i){
-                   this.blockTypes[k].textures[i] = textureBlocks.indexOf(this.blockTypes[k].textures[i]);
+                   this.blockTypess[k].textures[i] = textureBlocks.indexOf(this.blockTypess[k].textures[i]);
                 }
             }
 
