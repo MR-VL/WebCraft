@@ -18,4 +18,4 @@ export const utils = (function() {
             return difference;
         }
     };
-})
+})();

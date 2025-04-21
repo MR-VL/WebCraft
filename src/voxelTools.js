@@ -47,10 +47,16 @@ export const voxelTools = (() =>{
 
 
         GainFocus(){
+            if (!this.voxelMeshGroup || !this.placementMesh) {
+                console.warn("GainFocus called before InitEntity finished.");
+                return;
+            }
+
             this.voxelMeshGroup.visible = true;
             this.placementMesh.visible = true;
             this.active = true;
         }
+
 
         OnBlockIcon(message){
             this.voxelType = message.value;
@@ -58,7 +64,12 @@ export const voxelTools = (() =>{
         }
 
         UpdateVoxelMesh(){
-            const voxelstmp = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
+            const voxelstmp = this.FindEntity('voxelss')?.GetComponent('SparseVoxelCellManager');
+
+            if (!voxelstmp) {
+                console.warn('SparseVoxelCellManager or entity "voxelss" not found');
+                return;
+            }
             const colors = [];
             const uvSlices = [];
 
@@ -70,7 +81,7 @@ export const voxelTools = (() =>{
                 }
             }
 
-            this.voxelMesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            this.voxelMesh.geometry.setAttribute('colour', new THREE.Float32BufferAttribute(colors, 3));
             this.voxelMesh.geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(uvSlices, 1));
         }
 
