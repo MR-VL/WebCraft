@@ -1,196 +1,205 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-import {GammaCorrectionShader} from "three/examples/jsm/shaders/GammaCorrectionShader.js";
-import {FXAAShader} from "three/examples/jsm/shaders/FXAAShader.js";
+import {GammaCorrectionShader} from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader.js';
 
-import {entity} from "./Entity.js";
+import {entity} from "./entity.js";
 import {GameDefs} from "./Game-defs.js";
 import {defs} from "./defs.js";
 
-export const threeJSComponents = (() =>{
-    const vertexShader = `
-      varying vec3 vWorldPosition;
-      
-      void main() {
-        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
-        vWorldPosition = worldPosition.xyz;
-      
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-      }`;
 
-    const fragmentShader =  `
-      uniform vec3 topColor;
-      uniform vec3 bottomColor;
-      uniform vec3 playerPos;
-      uniform float offset;
-      uniform float exponent;
-      uniform float whiteBlend;
-      uniform float time;
-      uniform samplerCube background;
-      
-      varying vec3 vWorldPosition;
-      
-      float sdPlane(vec3 p, vec3 n, float h) {
-        // n must be normalized
-        return dot(p, n) + h;
-      }
-    
-      void main() {
-        vec3 viewDirection = normalize(vWorldPosition - cameraPosition);
-        vec3 stars = sRGBToLinear(textureCube(background, viewDirection)).xyz;
-     
-        float h = normalize(vWorldPosition + offset).y;
-        float t = max(pow(max(h, 0.0), exponent), 0.0);
-      
-        float f = exp(min(0.0, -vWorldPosition.y * 0.0125));
-      
-        float heightMix = clamp((playerPos.y - 500.0) / 1000.0, 0.0, 1.0);
-        heightMix = smoothstep(0.0, 1.0, heightMix);
-        heightMix = smoothstep(0.0, 1.0, heightMix);
-    
-        float wrapFactor = playerPos.y / 500.0;
-        float normalMix = clamp((viewDirection.y + wrapFactor) / (1.0 + wrapFactor), 0.0, 1.0);
-        normalMix = pow(normalMix, 0.250);
-    
-        vec3 topMix = mix(topColor, stars, heightMix * normalMix);
-    
-        // Normal
-        vec3 sky = mix(topMix, bottomColor, f);
-        // Moon
-        // vec3 sky = mix(stars, bottomColor, f);
-        float skyMix = clamp(whiteBlend, 0.0, 1.0);
-        sky = mix(bottomColor, sky, skyMix * skyMix);
-        gl_FragColor = vec4(sky, 1.0);
-        // gl_FragColor = vec4(vec3(normalMix * normalMix), 1.0);
-      }`;
+export const threeJSComponent = (() => {
 
-    class ThreeJSController extends entity.Component{
-        static className = "ThreeJSController";
+    const _VS = `
+  varying vec3 vWorldPosition;
+  
+  void main() {
+    vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+    vWorldPosition = worldPosition.xyz;
+  
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+  }`;
 
-        get NAME(){
-            return ThreeJSController.className;
+
+    const _FS = `
+  uniform vec3 topColor;
+  uniform vec3 bottomColor;
+  uniform vec3 playerPos;
+  uniform float offset;
+  uniform float exponent;
+  uniform float whiteBlend;
+  uniform float time;
+  uniform samplerCube background;
+  
+  varying vec3 vWorldPosition;
+  
+  float sdPlane(vec3 p, vec3 n, float h) {
+    // n must be normalized
+    return dot(p, n) + h;
+  }
+
+  void main() {
+    vec3 viewDirection = normalize(vWorldPosition - cameraPosition);
+    vec3 stars = sRGBToLinear(textureCube(background, viewDirection)).xyz;
+ 
+    float h = normalize(vWorldPosition + offset).y;
+    float t = max(pow(max(h, 0.0), exponent), 0.0);
+  
+    float f = exp(min(0.0, -vWorldPosition.y * 0.0125));
+  
+    float heightMix = clamp((playerPos.y - 500.0) / 1000.0, 0.0, 1.0);
+    heightMix = smoothstep(0.0, 1.0, heightMix);
+    heightMix = smoothstep(0.0, 1.0, heightMix);
+
+    float wrapFactor = playerPos.y / 500.0;
+    float normalMix = clamp((viewDirection.y + wrapFactor) / (1.0 + wrapFactor), 0.0, 1.0);
+    normalMix = pow(normalMix, 0.250);
+
+    vec3 topMix = mix(topColor, stars, heightMix * normalMix);
+
+    // Normal
+    vec3 sky = mix(topMix, bottomColor, f);
+    // Moon
+    // vec3 sky = mix(stars, bottomColor, f);
+    float skyMix = clamp(whiteBlend, 0.0, 1.0);
+    sky = mix(bottomColor, sky, skyMix * skyMix);
+    gl_FragColor = vec4(sky, 1.0);
+    // gl_FragColor = vec4(vec3(normalMix * normalMix), 1.0);
+  }`;
+
+    class ThreeJSController extends entity.Component {
+        static CLASS_NAME = 'ThreeJSController';
+
+        get NAME() {
+            return ThreeJSController.CLASS_NAME;
         }
 
         constructor() {
             super();
         }
 
-        InitEntity(){
-            this.threejs = new THREE.WebGLRenderer({antialias:false});
+        InitEntity() {
+            this.threejs_ = new THREE.WebGLRenderer({
+                antialias: false,
+            });
 
-            this.threejs.shadowMap.enabled = true;
-            this.threejs.shadowMap.type= THREE.PCFSoftShadowMap;
-            this.threejs.setPixelRatio(window.devicePixelRatio);
-            this.threejs.setSize( window.innerWidth, window.innerHeight );
-            this.threejs.domElement.id = 'threejs';
+            this.threejs_.shadowMap.enabled = true;
+            this.threejs_.shadowMap.type = THREE.PCFSoftShadowMap;
+            this.threejs_.setPixelRatio(window.devicePixelRatio);
+            this.threejs_.setSize(window.innerWidth, window.innerHeight);
+            this.threejs_.domElement.id = 'threejs';
 
-            document.getElementById('container').appendChild(this.threejs.domElement);
-            window.addEventListener('resize', () => {this.OnResize();}, false);
+            document.getElementById('container').appendChild(this.threejs_.domElement);
+
+            window.addEventListener('resize', () => {
+                this.OnResize_();
+            }, false);
 
             const fov = 60;
             const aspect = 1920 / 1080;
             const near = 0.5;
             const far = 10000.0;
-            this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-            this.camera.position.set(15, 50, 15);
-            this.camera.lookAt(0, 0, 0);
+            this.camera_ = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            this.camera_.position.set(15, 50, 15);
+            this.camera_.lookAt(0, 0, 0);
 
-            this.uiCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            this.uiCamera_ = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-            this.scene = new THREE.Scene();
-            this.scene.add(this.camera);
+            this.scene_ = new THREE.Scene();
+            this.scene_.add(this.camera_);
 
-            this.uiScene = new THREE.Scene();
-            this.uiScene.add(this.uiCamera);
+            this.uiScene_ = new THREE.Scene();
+            this.uiScene_.add(this.uiCamera_);
 
-            let light = new THREE.DirectionalLight(0xb1b6d0, 0.7);
+            let light = new THREE.DirectionalLight(0x8088b3, 0.7);
             light.position.set(-10, 500, 10);
             light.target.position.set(0, 0, 0);
-            this.scene.add(light);
-            this.uiScene.add(light.clone());
+            this.scene_.add(light);
+            this.uiScene_.add(light.clone());
 
-            this.sun = light;
+            this.sun_ = light;
 
             const params = {
                 minFilter: THREE.LinearFilter,
-                maxFilter: THREE.LinearFilter,
+                magFilter: THREE.LinearFilter,
                 format: THREE.RGBAFormat,
-                type: THREE.FloatType
+                type: THREE.FloatType,
             };
 
-            const hdr = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, params);
+            const hdr = new THREE.WebGLRenderTarget(
+                window.innerWidth, window.innerHeight, params);
             hdr.stencilBuffer = false;
             hdr.depthBuffer = true;
             hdr.depthTexture = new THREE.DepthTexture();
             hdr.depthTexture.format = THREE.DepthFormat;
             hdr.depthTexture.type = THREE.UnsignedIntType;
 
-            this.fxaa = new ShaderPass(FXAAShader);
+            this.fxaa_ = new ShaderPass(FXAAShader);
 
-            const uiPass = new RenderPass(this.uiScene, this.uiCamera);
+            const uiPass = new RenderPass(this.uiScene_, this.uiCamera_);
             uiPass.clear = false;
 
-            this.composer = new EffectComposer(this.threejs, hdr);
-            this.composer.addPass(new RenderPass(this.scene, this.camera));
-            this.composer.addPass(uiPass);
-            this.composer.addPass(this.fxaa);
-            this.composer.addPass(new ShaderPass(GammaCorrectionShader));
+            this.composer_ = new EffectComposer(this.threejs_, hdr);
+            this.composer_.addPass(new RenderPass(this.scene_, this.camera_));
+            this.composer_.addPass(uiPass);
+            this.composer_.addPass(this.fxaa_);
+            this.composer_.addPass(new ShaderPass(GammaCorrectionShader));
 
-
-            const mesh1 = new THREE.Mesh(
+            // So dumb. Don't judge me.
+            const m1 = new THREE.Mesh(
                 new THREE.BoxBufferGeometry(0.1, 0.01, 0.01),
                 new THREE.MeshBasicMaterial({
                     color: new THREE.Color(0xFFFFFF),
                     depthWrite: false,
-                    depthTest: false
-                })
-            );
-            mesh1.position.set(0, 0, -2);
-
-            const mesh2 = new THREE.Mesh(
-                new THREE.BoxBufferGeometry(0.1, 0.01, 0.01),
+                    depthTest: false,
+                }));
+            m1.position.set(0, 0, -2);
+            const m2 = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(0.01, 0.1, 0.01),
                 new THREE.MeshBasicMaterial({
                     color: new THREE.Color(0xFFFFFF),
                     depthWrite: false,
-                    depthTest: false
-                })
-            );
-            mesh2.position.set(0, 0, -2);
+                    depthTest: false,
+                }));
+            m2.position.set(0, 0, -2);
+            this.uiCamera_.add(m1);
+            this.uiCamera_.add(m2);
 
-            this.uiCamera.add(mesh1);
-            this.uiCamera.add(mesh2);
-
-            if(!GameDefs.showTools){
-                mesh1.visible = false;
-                mesh2.visible = false;
+            if (!GameDefs.showTools) {
+                m1.visible = false;
+                m2.visible = false;
             }
 
-            //todo orbit ctrl
+            // const controls = new OrbitControls(
+            //   this.camera_, this.threejs_.domElement);
+            // controls.target.set(2, 0, 2);
+            // controls.update();
 
-            this.LoadSky();
-            this.OnResize();
+            this.LoadSky_();
+            this.OnResize_();
         }
 
-        OnResize(){
-            this.camera.aspect = window.innerWidth / window.innerHeight;
-            this.camera.updateProjectionMatrix();
-            this.threejs.setSize( window.innerWidth, window.innerHeight );
-            this.composer.setSize( window.innerWidth, window.innerHeight );
+        OnResize_() {
+            this.camera_.aspect = window.innerWidth / window.innerHeight;
+            this.camera_.updateProjectionMatrix();
+            this.threejs_.setSize(window.innerWidth, window.innerHeight);
+            this.composer_.setSize(window.innerWidth, window.innerHeight);
 
-            const pixelRatio = this.threejs.getPixelRatio();
+            const pixelRatio = this.threejs_.getPixelRatio();
 
-            this.fxaa.material.uniforms['resolution'].value.x = 1 / (window.innerWidth * pixelRatio);
-            this.fxaa.material.uniforms['resolution'].value.y = 1 / (window.innerHeight * pixelRatio);
+            this.fxaa_.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+            this.fxaa_.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
         }
 
-        LoadSky(){
-            const hemisphereLight = new THREE.HemisphereLight(0x483965, 0xFFFFFF, 0.9);
-            this.scene.add(hemisphereLight);
-            this.uiScene.add(hemisphereLight);
+        LoadSky_() {
+            const hemiLight = new THREE.HemisphereLight(0x424a75, 0xFFFFFF, 0.9);
+            this.scene_.add(hemiLight);
+            this.uiScene_.add(hemiLight.clone());
+
 
             const loader = new THREE.CubeTextureLoader();
             const texture = loader.load([
@@ -199,69 +208,70 @@ export const threeJSComponents = (() =>{
                 './resources/space/posy.jpg',
                 './resources/space/negy.jpg',
                 './resources/space/posz.jpg',
-                './resources/space/negz.jpg'
+                './resources/space/negz.jpg',
             ]);
-
             texture.encoding = THREE.sRGBEncoding;
 
             const uniforms = {
-                "topColor": {value: defs.SkyColor.clone()},
-                "bottomColor": {value: defs.FogColor.clone()},
-                "offset": {value:0},
-                "exponent": {value: 0.5},
-                "background": {value: texture},
-                "whiteBlend": {value: 0.0},
-                "playerPos": {value: new THREE.Vector3()},
-                time:{
-                    value:0.0
-                }
+                "topColor": { value: defs.SKY_COLOUR.clone() },
+                "bottomColor": { value: defs.FOG_COLOUR.clone() },
+                "offset": { value: 0 },
+                "exponent": { value: 0.6 },
+                "background": { value: texture },
+                "whiteBlend": { value: 0.0 },
+                "playerPos": { value: new THREE.Vector3() },
+                time: {
+                    value: 0.0,
+                },
             };
+            // uniforms["topColor"].value.copy(hemiLight.color);
 
             const skyGeo = new THREE.SphereBufferGeometry(5000, 32, 15);
             const skyMat = new THREE.ShaderMaterial({
                 uniforms: uniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader,
-                side: THREE.BackSide
+                vertexShader: _VS,
+                fragmentShader: _FS,
+                side: THREE.BackSide,
             });
 
             const sky = new THREE.Mesh(skyGeo, skyMat);
-            this.sky = sky;
-            this.scene.add(sky);
+            this.sky_ = sky;
+            this.scene_.add(sky);
         }
 
-        Update(timeElapsed){
+        Update(timeElapsed) {
             const player = this.FindEntity('player');
-            if(!player){
+            if (!player) {
                 return;
             }
+            const pos = player._position;
 
-            const position = player.position;
             const forward = new THREE.Vector3(0, 0, -1);
             forward.applyQuaternion(player.Quaternion);
             forward.multiplyScalar(750);
 
-            this.sun.position.copy(position);
-            this.sun.position.add(new THREE.Vector3(-50, 200, -10));
-            this.sun.target.position.copy(position);
-            this.sun.updateMatrixWorld();
-            this.sun.target.updateMatrix();
+            this.sun_.position.copy(pos);
+            this.sun_.position.add(new THREE.Vector3(-50, 200, -10));
+            this.sun_.target.position.copy(pos);
+            this.sun_.updateMatrixWorld();
+            this.sun_.target.updateMatrixWorld();
 
-            this.sky.position.copy(new THREE.Vector3(position.x, 0, position.z));
-            this.sky.material.uniforms.playerPos.value.copy(position);
-            this.sky.material.uniforms.time.value += timeElapsed;
-            this.sky.material.needsUpdate = true;
+            this.sky_.position.copy(new THREE.Vector3(pos.x, 0, pos.z));
+            this.sky_.material.uniforms.playerPos.value.copy(pos);
+            this.sky_.material.uniforms.time.value += timeElapsed;
+            this.sky_.material.needsUpdate = true;
         }
 
-        Render(){
-            this.uiCamera.position.copy(this.camera.position);
-            this.uiCamera.quaternion.copy(this.camera.quaternion);
-            this.composer.render();
+        Render() {
+            this.uiCamera_.position.copy(this.camera_.position);
+            this.uiCamera_.quaternion.copy(this.camera_.quaternion);
+
+            this.composer_.render();
+            // this.threejs_.render(this.scene_, this.camera_);
         }
     }
 
-    return{
-        ThreeJSController: ThreeJSController
-    }
-
+    return {
+        ThreeJSController: ThreeJSController,
+    };
 })();

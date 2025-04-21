@@ -1,230 +1,225 @@
 import * as THREE from 'three';
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
-import {entity} from "./Entity.js";
-import {voxelShader} from "./voxelShader.js";
+
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+import {entity} from './entity.js';
+import {voxel_shader} from './voxelShader.js';
 import {GameDefs} from "./Game-defs.js";
 
-export const voxelTools = (() =>{
-    class VoxelToolsInsert extends entity.Component{
-        static className = "VoxelToolsInsert";
 
+export const voxel_tools = (() => {
 
-        get Name(){
-            return VoxelToolsInsert.className;
+    class VoxelTools_Insert extends entity.Component {
+        static CLASS_NAME = 'VoxelTools_Insert';
+
+        get NAME() {
+            return VoxelTools_Insert.CLASS_NAME;
         }
 
         constructor() {
             super();
-            this.voxelType = 'stone';
-            this.timer = 0;
-            this.active = false;
+
+            this.voxelType_ = 'stone';
+            this.timer_ = 0;
+            this.active_ = false;
         }
 
-        InitComponent(){
-            this.RegisterHandler('input.pressed', (message) => this.onInput(message));
-            this.RegisterHandler('ui.blockChanged', (message) => this.OnBlockIcon(message));
-            this.RegisterHandler('ui.toolChanged', (message) => this.OnToolChanged(message));
+        InitComponent() {
+            this._RegisterHandler('input.pressed', (m) => this.OnInput_(m));
+            this._RegisterHandler('ui.blockChanged', (m) => this.OnBlockIcon_(m));
+            this._RegisterHandler('ui.toolChanged', (m) => this.OnToolChanged_(m));
         }
 
-        OnToolChanged(message){
-            if (!GameDefs.showTools){
+        OnToolChanged_(msg) {
+            if (!GameDefs.showTools) {
                 return;
             }
 
-            if(message.value !== 'build'){
+            if (msg.value != 'build') {
                 this.LoseFocus();
-            }
-            else{
+            } else {
                 this.GainFocus();
             }
         }
 
-        LoseFocus(){
-            this.voxelMeshGroup.visible = false;
-            this.placementMesh.visible = false;
-            this.active = false;
+        LoseFocus() {
+            this.voxelMeshGroup_.visible = false;
+            this.placementMesh_.visible = false;
+            this.active_ = false;
         }
 
-
-        GainFocus(){
-            if (!this.voxelMeshGroup || !this.placementMesh) {
-                console.warn("GainFocus called before InitEntity finished.");
-                return;
-            }
-
-            this.voxelMeshGroup.visible = true;
-            this.placementMesh.visible = true;
-            this.active = true;
+        GainFocus() {
+            this.voxelMeshGroup_.visible = true;
+            this.placementMesh_.visible = true;
+            this.active_ = true;
         }
 
-
-        OnBlockIcon(message){
-            this.voxelType = message.value;
-            this.UpdateVoxelMesh();
+        OnBlockIcon_(msg) {
+            this.voxelType_ = msg.value;
+            this.UpdateVoxelMesh_();
         }
 
-        UpdateVoxelMesh(){
-            const voxelstmp = this.FindEntity('voxelss')?.GetComponent('SparseVoxelCellManager');
+        UpdateVoxelMesh_() {
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
 
-            if (!voxelstmp) {
-                console.warn('SparseVoxelCellManager or entity "voxelss" not found');
-                return;
-            }
-            const colors = [];
+            const colours = [];
             const uvSlices = [];
-
-
-            for(let i = 0; i < 6; ++i){
-                for(let j = 0; j < 4 * 3; ++j){
-                    colors.push(1.0, 1.0, 1.0)
-                    uvSlices.push(voxelstmp.blockTypess[this.voxelType].textures[2]);
+            for (let f = 0; f < 6; ++f) {
+                for (let i = 0; i < 4 * 3; ++i) {
+                    colours.push(1.0, 1.0, 1.0);
+                    uvSlices.push(voxels.blockTypes_[this.voxelType_].textures[2]);
                 }
             }
-
-            this.voxelMesh.geometry.setAttribute('colour', new THREE.Float32BufferAttribute(colors, 3));
-            this.voxelMesh.geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(uvSlices, 1));
+            this.voxelMesh_.geometry.setAttribute(
+                'colour', new THREE.Float32BufferAttribute(colours, 3));
+            this.voxelMesh_.geometry.setAttribute(
+                'uvSlice', new THREE.Float32BufferAttribute(uvSlices, 1));
         }
 
-        InitEntity(){
-            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene;
-            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera;
-            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
-            const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+        InitEntity() {
+            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene_;
+            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera_;
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
 
-            const placement1 = new THREE.ShaderMaterial({
+            const geo = new THREE.BoxBufferGeometry(1, 1, 1);
+
+            const p1 = new THREE.ShaderMaterial({
                 uniforms: {
                     time: {value: 0.0},
-                    edgeColor: {value: new THREE.Color(0x000000)}
+                    edgeColour: { value: new THREE.Color(0x000000) },
                 },
-                vertexShader: voxelShader.PLACEMENT.vectorShader,
-                fragmentShader: voxelShader.PLACEMENT.precisionShader,
+                vertexShader: voxel_shader.PLACEMENT.VS,
+                fragmentShader: voxel_shader.PLACEMENT.PS,
                 side: THREE.FrontSide,
                 blending: THREE.NormalBlending,
                 transparent: true,
-                depthWrite: false
+                depthWrite: false,
             });
+            const p2 = p1.clone();
+            p2.side = THREE.BackSide;
 
-            const placement2 = placement1.clone();
-            placement2.side = THREE.BackSide;
+            const m1 = new THREE.Mesh(geo, p1);
+            const m2 = new THREE.Mesh(geo, p2);
+            m1.renderOrder = 1;
+            this.placementMesh_ = new THREE.Group();
+            this.placementMesh_.add(m1);
+            this.placementMesh_.add(m2);
+            this.placementMesh_.scale.setScalar(0.999);
+            this.material1_ = p1;
+            this.material2_ = p2;
 
-            const mesh1 = new THREE.Mesh(geometry, placement1);
-            const mesh2 = new THREE.Mesh(geometry, placement2);
+            const voxelGeo = new THREE.BoxBufferGeometry(1, 1, 1);
 
-            mesh1.renderOrder = 1;
+            this.voxelMesh_ = new THREE.Mesh(voxelGeo, voxels.materialOpaque_.clone());
+            this.voxelMesh_.position.set(1.25, -1.25, -4);
+            this.voxelMesh_.rotateY(0.125 * 2 * Math.PI);
+            this.voxelMesh_.material.depthWrite = false;
+            this.voxelMesh_.material.depthTest = false;
 
-            this.placementMesh = new THREE.Group();
-            this.placementMesh.add(mesh1);
-            this.placementMesh.add(mesh2);
-            this.placementMesh.scale.setScalar(0.999);
-            this.material1 = placement1;
-            this.material2 = placement2;
+            this.voxelMeshGroup_ = new THREE.Group();
+            this.voxelMeshGroup_.add(this.voxelMesh_);
+            this.voxelMeshGroup_.position.set(0, 0, 2);
+            this.voxelMeshRotEnd_ = this.voxelMeshGroup_.quaternion.clone();
+            this.voxelMeshGroup_.rotateX(-0.125 * 2 * Math.PI);
+            this.voxelMeshRotStart_ = this.voxelMeshGroup_.quaternion.clone();
+            this.voxelMeshGroup_.quaternion.identity();
 
-            const voxelGeometry = new THREE.BoxBufferGeometry(1, 1, 1);
-            this.voxelMesh = new THREE.Mesh(voxelGeometry, voxels.materialOpaque.clone());
-            this.voxelMesh.position.set(1.25, -1.25, -4);
-            this.voxelMesh.rotateY(0.125 * 2 * Math.PI);
-            this.voxelMesh.material.depthWrite = false;
-            this.voxelMesh.material.depthTest = false;
-            this.voxelMeshGroup = new THREE.Group();
-            this.voxelMeshGroup.add(this.voxelMesh);
-            this.voxelMeshGroup.position.set(0, 0, 2);
-            this.voxelMeshRotationEnd = this.voxelMeshGroup.quaternion.clone();
-            this.voxelMeshGroup.rotateX(-0.125 * 2 * Math.PI);
-            this.voxelMeshRotationStart = this.voxelMeshGroup.quaternion.clone();
-            this.voxelMeshGroup.quaternion.identity();
+            camera.add(this.voxelMeshGroup_);
 
-            camera.add(this.voxelMeshGroup);
-            const rotateFrames = new THREE.QuaternionKeyframeTrack(
+            const rotFrames = new THREE.QuaternionKeyframeTrack(
                 '.quaternion',
                 [0, 1],
-                [...this.voxelMeshRotationStart.toArray(), this.voxelMeshRotationEnd.toArray()]
-            );
+                [...this.voxelMeshRotStart_.toArray(), ...this.voxelMeshRotEnd_.toArray()]);
 
-            const rotateClip = new THREE.AnimationClip('rotation', -1, [rotateFrames]);
-            this.mixer = new THREE.AnimationMixer(this.voxelMeshGroup);
-            this.action = this.mixer.clipAction(rotateClip);
+            const rotClip = new THREE.AnimationClip('rot', -1, [rotFrames]);
 
-            scene.add(this.placementMesh);
-            this.UpdateVoxelMesh();
+            this.mixer_ = new THREE.AnimationMixer(this.voxelMeshGroup_);
+            this.action_ = this.mixer_.clipAction(rotClip);
+
+            scene.add(this.placementMesh_);
+
+            this.UpdateVoxelMesh_();
             this.LoseFocus();
         }
 
-        OnInput(message){
-            if(!this.active){
+        OnInput_(msg) {
+            if (!this.active_) {
                 return;
             }
 
-            if(message.value === 'enter'){
+            if (msg.value == 'enter') {
                 this.PerformAction();
             }
         }
 
         PerformAction() {
-            //todo code cleanup
-            if(!this.active){
+            if (!this.active_) {
                 return;
             }
 
-            if(!this.placementMesh.visible){
+            if (!this.placementMesh_.visible) {
                 return;
             }
 
-            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
-            const possibleCoordinates = [this.placementMesh.position.x, this.placementMesh.position.y, this.placementMesh.position.z];
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const possibleCoords = [
+                this.placementMesh_.position.x, this.placementMesh_.position.y, this.placementMesh_.position.z];
 
-            if(!voxels.HasVoxelAt(...possibleCoordinates) ){
-                voxels.InsertVoxelAt(possibleCoordinates, this.voxelType);
+            if (!voxels.HasVoxelAt(...possibleCoords)) {
+                voxels.InsertVoxelAt(possibleCoords, this.voxelType_);
 
-                this.action.setLoop(THREE.LoopOnce, 1);
-                this.action.clampWhenFinished = true;
-                this.action.timeScale = 3.0;
-                this.action.reset();
-                this.action.play();
+                this.action_.setLoop(THREE.LoopOnce, 1);
+                this.action_.clampWhenFinished = true;
+                this.action_.timeScale = 3.0;
+                this.action_.reset();
+                this.action_.play();
             }
         }
 
-        Update(timeInSeconds){
-            if(!this.active){
+        Update(timeInSeconds) {
+            if (!this.active_) {
                 return;
             }
 
-            this.mixer.update(timeInSeconds);
-            this.timer += timeInSeconds;
-            this.material1.uniforms.time.value = this.timer;
-            this.material2.uniforms.time.value = this.timer;
-            this.material1.needsUpdate = true;
-            this.material2.needsUpdate = true;
+            this.mixer_.update(timeInSeconds);
+            this.timer_ += timeInSeconds;
+            this.material1_.uniforms.time.value = this.timer_;
+            this.material2_.uniforms.time.value = this.timer_;
+            this.material1_.needsUpdate = true;
+            this.material2_.needsUpdate = true;
 
-            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
-            this.voxelMesh.material.uniforms.diffuseMap.value = voxels.materialOpaque.uniforms.diffuseMap.value;
-            this.placementMesh.visible = false;
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            this.voxelMesh_.material.uniforms.diffuseMap.value = voxels.materialOpaque_.uniforms.diffuseMap.value;
+            this.placementMesh_.visible = false;
 
             const player = this.FindEntity('player');
             const forward = new THREE.Vector3(0, 0, -1);
-            forward.applyQuaternion(player.quaternion);
+            forward.applyQuaternion(player.Quaternion);
+
             const ray = new THREE.Ray(player.Position, forward);
-            const intersections = voxels.FindIntersectionsWithRay(ray, 5). filter(i => i.voxel.visible);
-
-            if(!intersections.length){
+            const intersections = voxels.FindIntersectionsWithRay(ray, 5).filter(i => i.voxel.visible);
+            if (!intersections.length) {
                 return;
             }
 
-            const possibleCoordinates = [...intersections[0].voxel.position];
-            const coordinates = this.FindClosestSide(possibleCoordinates, ray);
-            if(!coordinates){
+            const possibleCoords = [...intersections[0].voxel.position];
+
+            // Now pick which side to put block on
+            const coords = this.FindClosestSide_(possibleCoords, ray);
+            if (!coords) {
                 return;
             }
 
-            if(!voxels.HasVoxelAt(...coordinates) ){
-                this.placementMesh.position.set(...coordinates);
-                this.placementMesh.visible = true;
+            if (!voxels.HasVoxelAt(...coords)) {
+                this.placementMesh_.position.set(...coords);
+                this.placementMesh_.visible = true;
             }
         }
 
-        FindClosestSide(possibleCoordinates, ray) {
+        FindClosestSide_(possibleCoords, ray) {
             const sides = [
-                [...possibleCoordinates], [...possibleCoordinates], [...possibleCoordinates],
-                [...possibleCoordinates], [...possibleCoordinates], [...possibleCoordinates],
+                [...possibleCoords], [...possibleCoords], [...possibleCoords],
+                [...possibleCoords], [...possibleCoords], [...possibleCoords],
             ];
             sides[0][0] -= 1;
             sides[1][0] += 1;
@@ -233,235 +228,242 @@ export const voxelTools = (() =>{
             sides[4][2] -= 1;
             sides[5][2] += 1;
 
-            const AsAABB = (v) => {
+            const AsAABB_ = (v) => {
                 const position = new THREE.Vector3(...v);
                 const half = new THREE.Vector3(0.5, 0.5, 0.5);
 
-                const mesh1 = new THREE.Vector3();
-                mesh1.copy(position);
-                mesh1.sub(half);
+                const m1 = new THREE.Vector3();
+                m1.copy(position);
+                m1.sub(half);
 
-                const mesh2 = new THREE.Vector3();
-                mesh2.copy(position);
-                mesh2.copy(position);
+                const m2 = new THREE.Vector3();
+                m2.copy(position);
+                m2.add(half);
 
-                return new THREE.Box3(mesh1,mesh2);
+                return new THREE.Box3(m1, m2);
             }
 
-            const boxes = sides.map(v => AsAABB(v));
-            const tempV = new THREE.Vector3();
+            const boxes = sides.map(v => AsAABB_(v));
+            const _TMP_V = new THREE.Vector3();
 
             const intersections = [];
-            for(let i=0; i<boxes.length; ++i){
-                if(ray.intersectBox(boxes[i], tempV)){
+            for (let i = 0; i < boxes.length; ++i) {
+                if (ray.intersectBox(boxes[i], _TMP_V)) {
                     intersections.push({
                         position: sides[i],
-                        distance: tempV.distanceTo(ray.origin)
+                        distance: _TMP_V.distanceTo(ray.origin)
                     });
                 }
             }
 
-            intersections.sort((a,b) => {
+            intersections.sort((a, b) => {
                 return a.distance - b.distance;
             });
 
-            if(intersections.length > 0){
+            if (intersections.length > 0) {
                 return intersections[0].position;
             }
             return null;
         }
-    }//end voxel tools insert
+    };
 
-    class VoxelToolsDelete extends entity.Component{
-        static className = 'VoxelToolsDelete';
-        get Name(){
-            return VoxelToolsDelete.className;
+
+    class VoxelTools_Delete extends entity.Component {
+        static CLASS_NAME = 'VoxelTools_Delete';
+
+        get NAME() {
+            return VoxelTools_Delete.CLASS_NAME;
         }
 
         constructor() {
             super();
-            this.timer = 0;
-            this.active = true;
+            this.timer_ = 0;
+            this.active_ = true;
         }
 
-        InitEntity(){
-            this.LoadModel();
+        InitEntity() {
+            this.LoadModel_();
         }
 
-        InitComponent(){
-            this.RegisterHandler('input.pressed', (message) => this.OnInput(message));
-            this.RegisterHandler('ui.toolChanged', (message) => this.OnToolChanged(message));
+        InitComponent() {
+            this._RegisterHandler('input.pressed', (m) => this.OnInput_(m));
+            this._RegisterHandler('ui.toolChanged', (m) => this.OnToolChanged_(m));
         }
 
-        OnToolChanged(message){
-            if(!GameDefs.showTools){
+        OnToolChanged_(msg) {
+            if (!GameDefs.showTools) {
                 return;
             }
-            if(message.value != 'break'){
+
+            if (msg.value != 'break') {
                 this.LoseFocus();
-            }
-            else{
+            } else {
                 this.GainFocus();
             }
         }
 
-        LoseFocus(){
-            this.balls.visible = false;
-            this.placementMesh.visible = false;
-            this.active = false;
+        LoseFocus() {
+            this.balls_.visible = false;
+            this.placementMesh_.visible = false;
+            this.active_ = false;
         }
 
-        GainFocus(){
-            this.balls.visible = true;
-            this.placementMesh.visible = true;
-            this.active = true;
+        GainFocus() {
+            this.balls_.visible = true;
+            this.placementMesh_.visible = true;
+            this.active_ = true;
         }
 
-        LoadModel(){
-            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene;
-            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera;
-            this.balls = new THREE.Group();
-            camera.add(this.balls);
+        LoadModel_() {
+            const scene = this.FindEntity('renderer').GetComponent('ThreeJSController').scene_;
+            const camera = this.FindEntity('renderer').GetComponent('ThreeJSController').uiCamera_;
+
+            this.balls_ = new THREE.Group();
+            camera.add(this.balls_);
 
             const loader = new GLTFLoader();
-            //todo add texture
             loader.load('./resources/pickaxe/scene.gltf', (gltf) => {
-                gltf.scene.traverse(current => {
-                    if(current.material){
-                        current.material.depthWrite = false;
-                        current.material.depthTest = false;
+                gltf.scene.traverse(c => {
+                    if (c.material) {
+                        c.material.depthWrite = false;
+                        c.material.depthTest = false;
                     }
                 });
 
-                this.mesh = gltf.scene;
-                this.mesh.position.set(2, 2, 1);
-                this.mesh.scale.setScalar(0.1);
-                this.mesh.rotateZ(0.25 * 2 * Math.PI);
-                this.mesh.rotateY(-0.1 * 2 * Math.PI);
+                this.mesh_ = gltf.scene;
+                this.mesh_.position.set(2, 2, 1);
+                this.mesh_.scale.setScalar(0.1);
+                this.mesh_.rotateZ(0.25 * 2 * Math.PI);
+                this.mesh_.rotateY(-0.1 * 2 * Math.PI);
 
-                this.group = new THREE.Group();
-                this.group.add(this.mesh);
-                this.group.position.set(0, -3, -4);
-                const endRotation = this.group.quaternion.clone();
-                this.group.rotateX(-0.25 * 2 * Math.PI);
-                const startRotation = this.group.quaternion.clone();
-                this.group.quaternion.identity();
+                this.group_ = new THREE.Group();
+                this.group_.add(this.mesh_);
+                this.group_.position.set(0, -3, -4);
+                const endRot = this.group_.quaternion.clone();
+                this.group_.rotateX(-0.25 * 2 * Math.PI);
+                const startRot = this.group_.quaternion.clone();
+                this.group_.quaternion.identity();
 
-                this.balls.add(this.group);
-                const rotationFrames = new THREE.QuaternionKeyframeTrack(
+                this.balls_.add(this.group_);
+
+                const rotFrames = new THREE.QuaternionKeyframeTrack(
                     '.quaternion',
                     [0, 1, 2],
-                    [...endRotation.toArray(), ...startRotation.toArray(), ...endRotation.toArray()]
-                );
+                    [...endRot.toArray(), ...startRot.toArray(), ...endRot.toArray()]);
 
-                const rotationClip = new THREE.AnimationClip('rotation', -1, [rotationFrames]);
-                this.mixer = new THREE.AnimationMixer(this.group);
-                this.action = this.mixer.clipAction(rotationClip);
+                const rotClip = new THREE.AnimationClip('rot', -1, [rotFrames]);
+
+                this.mixer_ = new THREE.AnimationMixer(this.group_);
+                this.action_ = this.mixer_.clipAction(rotClip);
             });
 
-            const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-            const position1 = new THREE.ShaderMaterial({
-                uniforms:{
-                    time: {value:0.0},
-                    edgeColor: {value: new THREE.Color(0xFF0000)}
+            const geo = new THREE.BoxBufferGeometry(1, 1, 1);
+
+            const p1 = new THREE.ShaderMaterial({
+                uniforms: {
+                    time: {value: 0.0},
+                    edgeColour: { value: new THREE.Color(0xFF0000) },
                 },
-                vertexShader:voxelShader.PLACEMENT.vectorShader,
-                fragmentShader:voxelShader.PLACEMENT.precisionShader,
+                vertexShader: voxel_shader.PLACEMENT.VS,
+                fragmentShader: voxel_shader.PLACEMENT.PS,
                 side: THREE.FrontSide,
                 blending: THREE.NormalBlending,
                 transparent: true,
                 depthWrite: false,
             });
+            const p2 = p1.clone();
+            p2.side = THREE.BackSide;
 
-            const position2 = position1.clone();
-            position2.side = THREE.BackSide;
+            const m1 = new THREE.Mesh(geo, p1);
+            const m2 = new THREE.Mesh(geo, p2);
+            m1.renderOrder = 1;
+            this.placementMesh_ = new THREE.Group();
+            this.placementMesh_.add(m1);
+            this.placementMesh_.add(m2);
+            this.placementMesh_.scale.setScalar(1.0001);
+            this.material1_ = p1;
+            this.material2_ = p2;
 
-            const mesh1 = new THREE.Mesh(geometry, position1);
-            const mesh2 = new THREE.Mesh(geometry, position2);
-            mesh1.renderOrder = 1;
-            this.placementMesh = new THREE.Group();
-            this.placementMesh.add(mesh1);
-            this.placementMesh.add(mesh2);
-            this.placementMesh.scale.setScalar(1.0001);
-            this.material1 = position1;
-            this.material2 = position2;
-            scene.add(this.placementMesh);
+            scene.add(this.placementMesh_);
+
             this.LoseFocus();
         }
 
-        OnInput(message){
-            if(!this.active){
+        OnInput_(msg) {
+            if (!this.active_) {
                 return;
             }
 
-            if(message.value == 'enter'){
+            if (msg.value == 'enter') {
                 this.PerformAction();
             }
         }
 
-        PerformAction(){
-            if(!this.active){
-                return;
-            }
-            if(!this.placementMesh.visible){
+        PerformAction() {
+            if (!this.active_) {
                 return;
             }
 
-            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
-            const possibleCoordinates = [
-                this.placementMesh.position.x, this.placementMesh.position.y,this.placementMesh.position.z
-            ];
+            if (!this.placementMesh_.visible) {
+                return;
+            }
 
-            if(voxels.HasVoxelAt(...possibleCoordinates)){
-                voxels.RemoveVoxelAt(possibleCoordinates);
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const possibleCoords = [
+                this.placementMesh_.position.x, this.placementMesh_.position.y, this.placementMesh_.position.z];
 
-                if(this.action){
-                    this.action.setLoop(THREE.LoopOnce, 1);
-                    this.action.clampWhenFinished = true;
-                    this.action.timeScale = 10.0;
-                    this.action.reset();
-                    this.action.play();
+            if (voxels.HasVoxelAt(...possibleCoords)) {
+                voxels.RemoveVoxelAt(possibleCoords);
+
+                if (this.action_) {
+                    this.action_.setLoop(THREE.LoopOnce, 1);
+                    this.action_.clampWhenFinished = true;
+                    this.action_.timeScale = 10.0;
+                    this.action_.reset();
+                    this.action_.play();
                 }
             }
         }
 
-        Update(timeInSeconds){
-            if(!this.active){
+        Update(timeInSeconds) {
+            if (!this.active_) {
                 return;
             }
 
-            if(this.mixer){
-                this.mixer.update(timeInSeconds)
+            if (this.mixer_) {
+                this.mixer_.update(timeInSeconds);
             }
 
-            this.timer += timeInSeconds;
-            this.material1.uniforms.time.value = this.timer;
-            this.material2.uniforms.time.value = this.timer;
-            this.material1.needsUpdate = true;
-            this.material2.needsUpdate = true;
+            this.timer_ += timeInSeconds;
+            this.material1_.uniforms.time.value = this.timer_;
+            this.material2_.uniforms.time.value = this.timer_;
+            this.material1_.needsUpdate = true;
+            this.material2_.needsUpdate = true;
 
-            const voxels = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
+            // HACK
+            const voxels = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
 
             const player = this.FindEntity('player');
             const forward = new THREE.Vector3(0, 0, -1);
-            forward.applyQuaternion(player.quaternion);
+            forward.applyQuaternion(player.Quaternion);
 
             const ray = new THREE.Ray(player.Position, forward);
             const intersections = voxels.FindIntersectionsWithRay(ray, 4);
-            if(!intersections.length){
+            if (!intersections.length) {
                 return;
             }
 
-            const possibleCoordinates = [...intersections[0].voxel.position];
-            if(voxels.HasVoxelAt(...possibleCoordinates)){
-                this.placementMesh.position.set(...possibleCoordinates);
-                this.placementMesh.visible = true;
+            const possibleCoords = [...intersections[0].voxel.position];
+
+            if (voxels.HasVoxelAt(...possibleCoords)) {
+                this.placementMesh_.position.set(...possibleCoords);
+                this.placementMesh_.visible = true;
             }
         }
-    }//end voxel tools delete
+    };
 
-    return{
-      VoxelToolsInsert:VoxelToolsInsert,
-      VoxelToolsDelete:VoxelToolsDelete
+    return {
+        VoxelTools_Insert: VoxelTools_Insert,
+        VoxelTools_Delete: VoxelTools_Delete,
     };
 })();

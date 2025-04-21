@@ -1,179 +1,173 @@
 import * as THREE from 'three';
 
+
 export const entity = (() => {
 
-    class Entity{
-        // initialize all class private variables to a default value
-        constructor() {
-            this.name = null;
-            this.components = {};
-            this.position = new THREE.Vector3();
-            this.rotation = new THREE.Quaternion();
-            this.handlers = {};
-            this.parent = null;
-            this.dead = false;
-        }
+  class Entity {
+    constructor() {
+      this._name = null;
+      this._components = {};
 
-        SetParent(parent){
-            this.parent = parent;
-        }
-
-        SetName(name){
-            this.name = name;
-        }
-
-        get Name(){
-            return this.name;
-        }
-
-        InitEntity(){
-            //loops through and calls the func to init each component
-            for(let k in this.components){
-                this.components[k].InitEntity();
-            }
-        }
-
-        Destroy(){
-            //goes over each component and calls the destroy function to free up memory
-            for(let k in this.components){
-                this.components[k].Destroy();
-            }
-            //set fields to null since component was destroyed
-            this.components = null;
-            this.parent = null;
-            this.handlers = null;
-        }
-
-        SetActive(bool){
-            this.parent.SetActive(this, bool);
-        }
-
-        SetDead(){
-            this.dead = true;
-        }
-
-        RegisterHandler(name, handler){
-            //adds the name to the handlers
-            if(!(name in this.handlers)){
-                this.handlers[name] = [];
-            }
-            //pushes name to handler
-            this.handlers[name].push(handler);
-        }
-
-        get Manager(){
-            //parent manages all subs
-            return this.parent;
-        }
-
-        AddComponent(component){
-            //pass current obj to set it as parent
-            component.SetParent(this);
-            //store name and associate it with val
-            this.components[component.NAME] = component;
-            //initialize it
-            component.InitComponent();
-        }
-
-        GetComponent(name){
-            return this.components[name];
-        }
-        FindEntity(name){
-            return this.parent.Get(name);
-        }
-
-        BroadCast(message){
-            if(!(message.topic in this.handlers)){
-                return;
-            }
-
-            for (let curHandler of this.handlers[message.topic]){
-                curHandler(message);
-            }
-        }
-
-        SetPosition(position){
-            this.position.copy(position);
-            this.BroadCast({
-                topic: 'update position',
-                value: this.position
-            })
-        }
-
-        get Position(){
-            return this.position;
-        }
-
-        SetQuaternion(rotation){
-            this.rotation.copy(rotation);
-
-            this.BroadCast({
-                topic: 'update.rotation',
-                value: this.rotation
-            })
-        }
-
-        get Quaternion(){
-            return this.rotation;
-        }
-
-        Update(timeElapsed){
-            for(let k in this.components){
-                this.components[k].Update(timeElapsed);
-            }
-        }
-
+      this._position = new THREE.Vector3();
+      this._rotation = new THREE.Quaternion();
+      this._handlers = {};
+      this.parent_ = null;
+      this.dead_ = false;
     }
 
-    class Component{
-        get name(){
-            console.error('Unnamed Component: ' + this.constructor.name);
-            return '__UNNAMED__';
-        }
-
-        constructor() {
-            this.parent = null;
-        }
-
-        Destroy(){}
-
-        SetParent(parent){
-            this.parent = parent;
-        }
-
-        InitComponent(){}
-
-        InitEntity(){}
-
-        GetComponent(name){
-            return this.parent.GetComponent(name);
-        }
-
-        get Manager(){
-            return this.parent.Manager;
-        }
-
-        get Parent(){
-            return this.parent;
-        }
-
-        FindEntity(name){
-            return this.parent.FindEntity(name);
-        }
-
-        BroadCast(message){
-             this.parent.BroadCast(message);
-        }
-
-        Update(_){}
-
-        RegisterHandler(name, handler){
-            this.parent.RegisterHandler(name, handler);
-        }
+    Destroy() {
+      for (let k in this._components) {
+        this._components[k].Destroy();
+      }
+      this._components = null;
+      this.parent_ = null;
+      this._handlers = null;
     }
-    return{
-        Entity: Entity,
-        Component: Component
+
+    _RegisterHandler(n, h) {
+      if (!(n in this._handlers)) {
+        this._handlers[n] = [];
+      }
+      this._handlers[n].push(h);
     }
+
+    SetParent(p) {
+      this.parent_ = p;
+    }
+
+    SetName(n) {
+      this._name = n;
+    }
+
+    get Name() {
+      return this._name;
+    }
+
+    get Manager() {
+      return this.parent_;
+    }
+
+    SetActive(b) {
+      this.parent_.SetActive(this, b);
+    }
+
+    SetDead() {
+      this.dead_ = true;
+    }
+
+    AddComponent(c) {
+      c.SetParent(this);
+      this._components[c.NAME] = c;
+
+      c.InitComponent();
+    }
+
+    InitEntity() {
+      for (let k in this._components) {
+        this._components[k].InitEntity();
+      }
+    }
+
+    GetComponent(n) {
+      return this._components[n];
+    }
+
+    FindEntity(n) {
+      return this.parent_.Get(n);
+    }
+
+    Broadcast(msg) {
+      if (!(msg.topic in this._handlers)) {
+        return;
+      }
+
+      for (let curHandler of this._handlers[msg.topic]) {
+        curHandler(msg);
+      }
+    }
+
+    SetPosition(p) {
+      this._position.copy(p);
+      this.Broadcast({
+          topic: 'update.position',
+          value: this._position,
+      });
+    }
+
+    SetQuaternion(r) {
+      this._rotation.copy(r);
+      this.Broadcast({
+          topic: 'update.rotation',
+          value: this._rotation,
+      });
+    }
+
+    get Position() {
+      return this._position;
+    }
+
+    get Quaternion() {
+      return this._rotation;
+    }
+
+    Update(timeElapsed) {
+      for (let k in this._components) {
+        this._components[k].Update(timeElapsed);
+      }
+    }
+  };
+
+  class Component {
+    get NAME() {
+      console.error('Unnamed Component: ' + this.constructor.name);
+      return '__UNNAMED__';
+    }
+  
+    constructor() {
+      this.parent_ = null;
+    }
+
+    Destroy() {
+    }
+
+    SetParent(p) {
+      this.parent_ = p;
+    }
+
+    InitComponent() {}
+    
+    InitEntity() {}
+
+    GetComponent(n) {
+      return this.parent_.GetComponent(n);
+    }
+
+    get Manager() {
+      return this.parent_.Manager;
+    }
+
+    get Parent() {
+      return this.parent_;
+    }
+
+    FindEntity(n) {
+      return this.parent_.FindEntity(n);
+    }
+
+    Broadcast(m) {
+      this.parent_.Broadcast(m);
+    }
+
+    Update(_) {}
+
+    _RegisterHandler(n, h) {
+      this.parent_._RegisterHandler(n, h);
+    }
+  };
+
+  return {
+    Entity: Entity,
+    Component: Component,
+  };
 
 })();

@@ -1,108 +1,88 @@
-export const entityManager = (() => {
+
+
+export const entity_manager = (() => {
+
     class EntityManager {
-        //private class declarations
         constructor() {
-            this.ids = 0;
-            this.entitiesMap = {};
-            this.entities = [];
+            this._ids = 0;
+            this._entitiesMap = {};
+            this._entities = [];
         }
 
-        GenerateName() {
-            //creates entity names with incrementing ID
-            this.ids += 1;
-            return '__name__' + this.ids;
+        _GenerateName() {
+            this._ids += 1;
+
+            return '__name__' + this._ids;
         }
 
-        Get(name) {
-            //return the value at a given position with name
-            return this.entitiesMap[name];
+        Get(n) {
+            return this._entitiesMap[n];
         }
 
-        Filter(block) {
-            return this.entities.filter(block);
+        Filter(cb) {
+            return this._entities.filter(cb);
         }
 
-        //adds a new entity
-        Add(en, name) {
-            //if no name is provided generate a new name
-            if (!name) {
-                name = this.GenerateName();
+        Add(e, n) {
+            if (!n) {
+                n = this._GenerateName();
             }
-            //map the name to the entity
-            this.entitiesMap[name] = en;
-            //push the entity to the entities
-            this.entities.push(en);
 
-            //set its parent and name
-            en.SetParent(this);
-            en.SetName(name);
-            //initialize the entity
-            en.InitEntity();
+            this._entitiesMap[n] = e;
+            this._entities.push(e);
+
+            e.SetParent(this);
+            e.SetName(n);
+            e.InitEntity();
         }
 
+        SetActive(e, b) {
+            const i = this._entities.indexOf(e);
 
-        SetActive(entity, bool) {
-            //determine if the entity already exists
-            //if entity is found will return index
-            //if it doesn't exist will return -1
-            const index = this.entities.indexOf(entity);
-
-            //mark inactive
-            if (!bool) {
-                //if entity is not in the entities just return nothing more needed to do
-                if (index < 0) {
+            if (!b) {
+                if (i < 0) {
                     return;
                 }
-                //entity exists
-                //remove the 1 entity at the index
-                this.entities.splice(index, 1);
-            }
-            //mark active
-            else {
-                //if the entity is already in entities return
-                if (index >= 0) {
+
+                this._entities.splice(i, 1);
+            } else {
+                if (i >= 0) {
                     return;
                 }
-                //if not add it to the entities
-                this.entities.push(entity);
+
+                this._entities.push(e);
             }
         }
-        Update(timeElapsed){
-            //takes time since last update
+
+        Update(timeElapsed) {
             const dead = [];
             const alive = [];
+            for (let i = 0; i < this._entities.length; ++i) {
+                const e = this._entities[i];
 
-            for(let i=0; i< this.entities.length; ++i){
-                // get current entity from array
-                const entity = this.entities[i];
+                e.Update(timeElapsed);
 
-                //loop through and determine if each entity is alive or dead
-                entity.Update(timeElapsed);
-
-                //determine if alive or dead and store appropriately
-                if(entity.dead){
-                    dead.push(entity);
-                }
-                else{
-                    alive.push(entity);
+                if (e.dead_) {
+                    dead.push(e);
+                } else {
+                    alive.push(e);
                 }
             }
 
-            //loop through the dead array
-            for(let i = 0; i<dead.length; ++i){
-                //grab current index
-                const entity = dead[i];
-                //delete the name from the entities map
-                delete this.entitiesMap[entity.name];
-                //destroy the entity
-                entity.destroy();
+            for (let i = 0; i < dead.length; ++i) {
+                const e = dead[i];
+
+                delete this._entitiesMap[e.Name];
+
+                e.Destroy();
             }
-            //only include the alive entities
-            this.entities = alive;
+
+            this._entities = alive;
         }
     }
 
-    return{
-        EntityManager:EntityManager
+    return {
+        EntityManager: EntityManager
     };
+
 })();

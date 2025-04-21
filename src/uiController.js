@@ -1,83 +1,89 @@
-import {entity} from "./Entity.js";
-import {textureDefs} from "./textureDefs.js";
-import {GameDefs} from "./Game-Defs.js";
+import {entity} from './entity.js';
 
-export const uiController = (() => {
-    class UIController extends entity.Component{
-        static className = "UIController";
+import {texture_defs} from './textureDefs.js';
+import {GameDefs} from "./Game-defs.js";
 
-        get Name(){
-            return UIController.className;
+
+export const ui_controller = (() => {
+
+    class UIController extends entity.Component {
+        static CLASS_NAME = 'UIController';
+
+        get NAME() {
+            return UIController.CLASS_NAME;
         }
 
         constructor() {
             super();
         }
 
-        InitEntity(){
-            this.iconbar = document.getElementById('icon-bar');
-            this.icons = [];
+        InitEntity() {
+            this.iconBar_ = document.getElementById('icon-bar');
+            this.icons_ = [];
 
             const blockTypes = [
                 'dirt', 'stone', 'sand', 'grass', 'snow', 'moon', 'tree_bark', 'tree_leaves'
             ];
 
-            for(let block of blockTypes){
-                const ent = document.createElement('DIV');
-                let textureName = textureDefs.DEFS[block].texture;
-                if(textureName instanceof Array){
+            for (let b of blockTypes) {
+                const e = document.createElement('DIV');
+
+                let textureName = texture_defs.DEFS[b].texture;
+                if (textureName instanceof Array) {
                     textureName = textureName[2];
                 }
 
-                ent.className = 'icon-bar-item';
-                ent.style = "background-image: url('./resources/Blocks/" + textureName + "');";
-                ent.blockType = block;
+                e.className = 'icon-bar-item';
+                e.style = "background-image: url('./resources/blocks/" + textureName + "');";
+                e.blockType = b;
 
-                this.iconbar.appendChild(ent);
-                this.icons.push(ent);
+                this.iconBar_.appendChild(e);
+                this.icons_.push(e);
             }
 
-            this.toolTypes = ['build', 'break'];
-            this.toolIndex = 0;
-            this.iconIndex = 0;
-            this.icons[0].classList.toggle('highlight');
-            this.UpdateToolBlockType();
-            this.UpdateToolType();
+            this.toolTypes_ = ['build', 'break'];
+            this.toolIndex_ = 0;
+            this.iconIndex_ = 0;
+            this.icons_[0].classList.toggle('highlight');
+            this.UpdateToolBlockType_();
+            this.UpdateToolType_();
 
-            if(!GameDefs.showTools){
-                this.iconbar.style.display = 'none';
+            if (!GameDefs.showTools) {
+                this.iconBar_.style.display = 'none';
             }
         }
 
-        CycleBuildIcon(direction){
-            this.icons[this.iconIndex].classList.remove('highlight');
-            this.iconIndex = (this.iconIndex + this.icons.length + direction) % this.icons.length;
-            this.UpdateToolBlockType();
+        CycleBuildIcon_(dir) {
+            this.icons_[this.iconIndex_].classList.remove('highlight');
+            this.iconIndex_ = (this.iconIndex_ + this.icons_.length + dir) % this.icons_.length;
+            this.icons_[this.iconIndex_].classList.toggle('highlight');
+
+            this.UpdateToolBlockType_();
         }
 
-        CycleTool(){
-            this.toolIndex = (this.toolIndex + 1) % this.toolTypes.length;
-            this.UpdateToolType();
+        CycleTool_() {
+            this.toolIndex_ = (this.toolIndex_ + 1) % this.toolTypes_.length;
+            this.UpdateToolType_();
         }
 
-        UpdateToolBlockType(){
+        UpdateToolBlockType_() {
             const player = this.FindEntity('player');
-            player.BroadCast({
+            player.Broadcast({
                 topic: 'ui.blockChanged',
-                value: this.icons[this.iconIndex].blockType
+                value: this.icons_[this.iconIndex_].blockType,
             });
         }
 
-        UpdateToolType(){
+        UpdateToolType_() {
             const player = this.FindEntity('player');
-            player.BroadCast({
+            player.Broadcast({
                 topic: 'ui.toolChanged',
-                value: this.toolTypes[this.toolIndex]
+                value: this.toolTypes_[this.toolIndex_],
             });
         }
-    }
+    };
 
-    return{
-        UIController:UIController
-    }
+    return {
+        UIController: UIController,
+    };
 })();

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const textureDefs = (() => {
+export const texture_defs = (() => {
     return {
         DEFS: {
             ocean: {

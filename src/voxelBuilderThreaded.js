@@ -1,93 +1,101 @@
 import * as THREE from 'three';
-import {workerPool} from "./workerPool.js";
-import {voxelBlockBuilder} from "./voxelBlockBuilder.js";
-import {GameDefs} from "./Game-defs.js";
 
-export const voxelBuilderThreaded = (() => {
+import {worker_pool} from './workerPool.js';
 
-    class SparseVoxelCellBlock{
-        constructor(params){
-            this.params = params;
-            this.voxels = {};
-            this.group = new THREE.Group();
-            this.buildID = 0;
-            this.lastBuildID = -1;
-            this.building = false;
-            this.dirty = false;
-            this.builder = new voxelBlockBuilder.VoxelBlockBuilder();
-            params.scene.add(this.group);
+import {voxel_block_builder} from './voxelBlockBuilder.js';
+import {GameDefs} from "./game-defs.js";
+
+
+export const voxel_builder_threaded = (() => {
+
+
+    class SparseVoxelCellBlock {
+        constructor(params) {
+            this.params_ = params;
+            this.voxels_ = {};
+            this.group_ = new THREE.Group();
+            this.buildId_ = 0;
+            this.lastBuiltId_ = -1;
+            this.building_ = false;
+            this.dirty_ = false;
+
+            // Use this for emergency rebuilds when voxels inserted/deleted.
+            this.builder_ = new voxel_block_builder.VoxelBlockBuilder();
+            params.scene.add(this.group_);
         }
 
-        Destroy(){
-            this.ReleaseAssets();
-            this.group.parent.remove(this.group);
+        Destroy() {
+            this.ReleaseAssets_();
+            this.group_.parent.remove(this.group_);
         }
 
-        ReleaseAssets(){
-            this.group.traverse(current => {
-                if(current.material){
-                    current.material.dispose();
+        ReleaseAssets_() {
+            this.group_.traverse(c => {
+                if (c.material) {
+                    c.material.dispose();
                 }
-                if(current.geometry){
-                    current.geometry.dispose();
+                if (c.geometry) {
+                    c.geometry.dispose();
                 }
             });
-            if (this.opaqueMesh){
-                this.group.remove(this.opaqueMesh);
+            if (this.opaqueMesh_) {
+                this.group_.remove(this.opaqueMesh_);
             }
-
-            if(this.transparentMesh){
-                this.group.remove(this.transparentMesh);
+            if (this.transparentMesh_) {
+                this.group_.remove(this.transparentMesh_);
             }
         }
 
-        Show(){
-            this.group.visible = true;
+        Show() {
+            this.group_.visible = true;;
         }
 
-        Hide(){
-            this.group.visible = false;
+        Hide() {
+            this.group_.visible = false;;
         }
 
-        get Destroyed(){
-            return !this.group.parent;
+        get Destroyed() {
+            return !this.group_.parent;
         }
 
-        get Dirty(){
-            return this.dirty
+        get Dirty() {
+            return this.dirty_;
         }
 
-        Key(x, y, z){
+        Key_(x, y, z) {
             return x + '.' + y + '.' + z;
         }
 
-        InsertVoxelAt(position, type, skippable){
-            const key = this.Key(...position);
-            if(key in this.voxels && skippable){
+        InsertVoxelAt(pos, type, skippable) {
+            const k = this.Key_(...pos);
+            if (k in this.voxels_ && skippable) {
                 return;
             }
 
-            //todo code cleanup
-            const voxel = {
-                position: [...position],
+            const v = {
+                position: [...pos],
                 type: type,
-                visible: true
+                visible: true,
             };
 
-            this.voxels[key] = voxel;
-            this.buildID++;
-            this.dirty = true;
+            this.voxels_[k] = v;
+            this.buildId_++;
+            this.dirty_ = true;
 
-            const neighbors = this.params.parent.GetAdjacentBlocks(this.params.offset.x, this.params.offset.z);
+            // Get nearby voxels
+            const neighbours = this.params_.parent.GetAdjacentBlocks(
+                this.params_.offset.x, this.params_.offset.z);
 
-            for(let xi = -1; xi <= 1; ++xi){
-                for(let yi = -1; yi <= 1; ++yi){
-                    for(let zi = -1; zi <= 1; ++zi){
-                        for(let ni=0; ni < neighbors.length; ++ni){
-                            const key = this.Key(position[0]+xi, position[1]+yi, position[2]+zi);
-                            if(key in neighbors[ni].voxels){
-                                neighbors[ni].buildID++;
-                                neighbors[ni].dirty = true;
+            for (let xi = -1; xi <= 1; ++xi) {
+                for (let yi = -1; yi <= 1; ++yi) {
+                    for (let zi = -1; zi <= 1; ++zi) {
+                        for (let ni = 0; ni < neighbours.length; ++ni) {
+                            const k = this.Key_(pos[0] + xi, pos[1] + yi, pos[2] + zi);
+
+                            if (k in neighbours[ni].voxels_) {
+                                // Force the neighbour to rebuild since we shared some voxels
+                                neighbours[ni].buildId_++;
+                                neighbours[ni].dirty_ = true;
                             }
                         }
                     }
@@ -95,38 +103,42 @@ export const voxelBuilderThreaded = (() => {
             }
         }
 
-        RemoveVoxelAt(position){
-            this.buildID++;
-            this.dirty = true;
+        RemoveVoxelAt(pos) {
+            this.buildId_++;
+            this.dirty_ = true;
 
             const params = {
-                buildID: this.buildID,
-                offset: this.params.offset.toArray(),
-                dimensions: this.params.dimensions.toArray(),
-                blockTypes: this.params.blockTypes,
-                currentTime: 0.0
+                buildId: this.buildId_,
+                offset: this.params_.offset.toArray(),
+                dimensions: this.params_.dimensions.toArray(),
+                blockTypes: this.params_.blockTypes,
+                currentTime: 0.0,
             };
 
-            this.builder.Init(params);
+            this.builder_.Init(params);
 
-            const keyVoxel = this.Key(...position);
-            this.voxels[keyVoxel].visible = false;
-            const fillVoxels = this.builder.RemoveVoxelAndFill(position, this.voxels);
-            for(let key in fillVoxels){
-                this.params.parent.InsertVoxelAt(fillVoxels[key].position, fillVoxels[key].type, true);
+            // Only write fill voxels if needed
+            const kv = this.Key_(...pos);
+            this.voxels_[kv].visible = false;
+            const fillVoxels = this.builder_.RemoveVoxelAndFill_(pos, this.voxels_);
+            for (let k in fillVoxels) {
+                this.params_.parent.InsertVoxelAt(
+                    fillVoxels[k].position, fillVoxels[k].type, true);
             }
 
-            const neighbors = this.params.parent.GetAdjacentBlocks(this.params.offset.x, this.params.offset.z);
+            const neighbours = this.params_.parent.GetAdjacentBlocks(
+                this.params_.offset.x, this.params_.offset.z);
 
-            //todo possible cleanup / make into function due to reuse
-            for(let xi = -1; xi <= 1; ++xi){
-                for(let yi = -1; yi <= 1; ++yi){
-                    for(let zi = -1; zi <= 1; ++zi){
-                        for(let ni=0; ni < neighbors.length; ++ni){
-                            const key = this.Key(position[0]+xi, position[1]+yi, position[2]+zi);
-                            if(key in neighbors[ni].voxels){
-                                neighbors[ni].buildID++;
-                                neighbors[ni].dirty = true;
+            for (let xi = -1; xi <= 1; ++xi) {
+                for (let yi = -1; yi <= 1; ++yi) {
+                    for (let zi = -1; zi <= 1; ++zi) {
+                        for (let ni = 0; ni < neighbours.length; ++ni) {
+                            const k = this.Key_(pos[0] + xi, pos[1] + yi, pos[2] + zi);
+
+                            if (k in neighbours[ni].voxels_) {
+                                // Force the neighbour to rebuild since we shared some voxels
+                                neighbours[ni].buildId_++;
+                                neighbours[ni].dirty_ = true;
                             }
                         }
                     }
@@ -134,210 +146,222 @@ export const voxelBuilderThreaded = (() => {
             }
         }
 
-        PartialRebuild(){
-            const neighbors = this.params.parent.GetAdjacentBlocks(this.params.offset.x, this.params.offset.z);
-            const neighborVoxels = {};
-            const xNegative = this.params.offset.x -1;
-            const zNegative = this.params.offset.z-1;
-            const xPositive = this.params.offset.x + this.params.dimensions.x;
-            const zPositive = this.params.offset.z + this.params.dimensions.z;
+        PartialRebuild() {
+            const neighbours = this.params_.parent.GetAdjacentBlocks(
+                this.params_.offset.x, this.params_.offset.z);
 
-            for(let ni =0; ni<neighbors.length; ++ni){
-                const neighbor = neighbors[ni];
-                for(let key in neighbors.voxels){
-                    const vox = neighbor.voxels[key];
-                    //todo possible type cast
-                    if(vox.position[0] === xNegative || vox.position[0] === xPositive || vox.position[2]=== zNegative || vox.position[2]===zPositive){
-                        neighborVoxels[key] = vox;
+            const neighbourVoxels = {};
+            const xn = this.params_.offset.x - 1;
+            const zn = this.params_.offset.z - 1;
+            const xp = this.params_.offset.x + this.params_.dimensions.x;
+            const zp = this.params_.offset.z + this.params_.dimensions.z;
+            for (let ni = 0; ni < neighbours.length; ++ni) {
+                const neighbour = neighbours[ni];
+                for (let k in neighbour.voxels_) {
+                    const v = neighbour.voxels_[k];
+                    if (v.position[0] == xn || v.position[0] == xp ||
+                        v.position[2] == zn || v.position[2] == zp) {
+                        neighbourVoxels[k] = v;
                     }
                 }
             }
 
             const params = {
-                buildID: this.buildID,
-                offset: this.params.offset.toArray(),
-                dimensions: this.params.dimensions.toArray(),
-                blockTypes: this.params.blockTypes,
-                currentTime: 0.0
+                buildId: this.buildId_,
+                offset: this.params_.offset.toArray(),
+                dimensions: this.params_.dimensions.toArray(),
+                blockTypes: this.params_.blockTypes,
+                currentTime: 0.0,
             };
 
-            this.builder.Init(params);
-            const data = this.builder.PartialRebuild(this.voxels, neighborVoxels);
+            this.builder_.Init(params);
+            const data = this.builder_.PartialRebuild(this.voxels_, neighbourVoxels);
+
             this.RebuildMeshFromData(data);
-            this.dirty = false;
+
+            this.dirty_ = false;
         }
 
-        HasVoxelAt(x, y, z){
-            const key = this.Key(x, y, z);
-            if (!(key in this.voxels)){
+        HasVoxelAt(x, y, z) {
+            const k = this.Key_(x, y, z);
+            if (!(k in this.voxels_)) {
                 return false;
             }
 
-            return this.voxels[key].visible;
+            return this.voxels_[k].visible;
         }
 
-        FindVoxelsNear(position, radius){
-            const xPositive = Math.ceil(position.x + (radius + 1));
-            const yPositive = Math.ceil(position.y + (radius + 1));
-            const zPositive = Math.ceil(position.z + (radius + 1));
-            const xNegative = Math.floor(position.x - (radius + 1));
-            const yNegative = Math.floor(position.y - (radius + 1));
-            const zNegative = Math.floor(position.z - (radius + 1));
+        FindVoxelsNear(pos, radius) {
+            const xp = Math.ceil(pos.x + (radius + 1));
+            const yp = Math.ceil(pos.y + (radius + 1));
+            const zp = Math.ceil(pos.z + (radius + 1));
+            const xn = Math.floor(pos.x - (radius + 1));
+            const yn = Math.floor(pos.y - (radius + 1));
+            const zn = Math.floor(pos.z - (radius + 1));
 
             const voxels = [];
-            for (let xi = xNegative; xi <= xPositive; ++xi) {
-                for (let yi = yNegative; yi <= yPositive; ++yi) {
-                    for (let zi = zNegative; zi <= zPositive; ++zi) {
-                        const k = this.Key(xi, yi, zi);
-                        if (k in this.voxels) {
-                            if (this.voxels[k].visible) {
-                                voxels.push(this.voxels[k]);
+            for (let xi = xn; xi <= xp; ++xi) {
+                for (let yi = yn; yi <= yp; ++yi) {
+                    for (let zi = zn; zi <= zp; ++zi) {
+                        const k = this.Key_(xi, yi, zi);
+                        if (k in this.voxels_) {
+                            if (this.voxels_[k].visible) {
+                                voxels.push(this.voxels_[k]);
                             }
                         }
                     }
                 }
             }
-
             return voxels;
         }
 
-        BuildGeometry(data, material){
-            const geometry = new THREE.BufferGeometry();
-            const mesh = new THREE.Mesh(geometry, material);
+        BuildGeometry_(data, mat) {
+            const geo = new THREE.BufferGeometry();
+            const mesh = new THREE.Mesh(geo, mat);
             mesh.castShadow = false;
             mesh.receiveShadow = true;
 
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(data.positions, 3));
-            geometry.setAttribute('normal', new THREE.Float32BufferAttribute(data.normals, 3));
-            geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data.uvs, 2));
-            geometry.setAttribute('uvSlice', new THREE.Float32BufferAttribute(data.uvSlices, 1));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(data.colors, 3));
-            geometry.setIndex(new THREE.BufferAttribute(data.indices, 1));
+            geo.setAttribute(
+                'position', new THREE.Float32BufferAttribute(data.positions, 3));
+            geo.setAttribute(
+                'normal', new THREE.Float32BufferAttribute(data.normals, 3));
+            geo.setAttribute(
+                'uv', new THREE.Float32BufferAttribute(data.uvs, 2));
+            geo.setAttribute(
+                'uvSlice', new THREE.Float32BufferAttribute(data.uvSlices, 1));
+            geo.setAttribute(
+                'colour', new THREE.Float32BufferAttribute(data.colours, 3));
+            geo.setIndex(
+                new THREE.BufferAttribute(data.indices, 1));
+            geo.attributes.position.needsUpdate = true;
+            geo.attributes.normal.needsUpdate = true;
+            geo.attributes.uv.needsUpdate = true;
+            geo.attributes.colour.needsUpdate = true;
 
-            geometry.attributes.position.needsUpdate = true;
-            geometry.attributes.normal.needsUpdate = true;
-            geometry.attributes.uv.needsUpdate = true;
-            geometry.attributes.color.needsUpdate = true;
+            geo.computeBoundingBox();
+            geo.computeBoundingSphere();
 
-            geometry.computeBoundingBox();
-            geometry.computeBoundingSphere();
             return mesh;
         }
 
-        RebuildMeshFromData(data){
-            this.ReleaseAssets();
+        RebuildMeshFromData(data) {
+            this.ReleaseAssets_();
 
-            if(data.opaque.positions.length > 0){
-                this.opaqueMesh = this.BuildGeometry(data.opaque, this.params.materialOpaque);
-                this.group.add(this.opaqueMesh);
+            if (data.opaque.positions.length > 0) {
+                this.opaqueMesh_ = this.BuildGeometry_(
+                    data.opaque, this.params_.materialOpaque);
+                this.group_.add(this.opaqueMesh_);
             }
-            if(data.transparent.positions.length > 0){
-                this.transparentMesh = this.BuildGeometry(data.transparent, this.params.materialTransparent);
-                this.group.add(this.transparentMesh);
+            if (data.transparent.positions.length > 0) {
+                this.transparentMesh_ = this.BuildGeometry_(
+                    data.transparent, this.params_.materialTransparent);
+                this.group_.add(this.transparentMesh_);
             }
 
-            this.voxels = data.voxelss;
-            this.lastBuildID = data.buildID;
+            this.voxels_ = data.voxels;
+            this.lastBuiltId_ = data.buildId;
         }
+    };
 
-    }// end sparsevoxelcellblock class
+    const _NUM_WORKERS = 7;
 
-
-     //todo add preset depending on hardware or have it to where user can change
-    // 7 sometimes lags on generation at least on my computer
-    const numWorkers = 7;
-
-
-    class VoxelBuilderThreaded{
+    class VoxelBuilder_Threaded {
         constructor(params) {
-            this.old = [];
-            this.blocks = [];
-            this.workerPool = new workerPool.WorkerPool(numWorkers);
-            this.params = params;
-            this.currentTime = 0.01;
+            this.old_ = [];
+            this.blocks_ = [];
+
+            this.workerPool_ = new worker_pool.WorkerPool(_NUM_WORKERS);
+
+            this.params_ = params;
+            this.currentTime_ = 0.01;
         }
 
-        OnResult(block, message){
-            if(message.subject === 'buildChunkResult'){
-                block.RebuildMeshFromData(message.data);
+        OnResult_(block, msg) {
+            if (msg.subject == 'build_chunk_result') {
+                block.RebuildMeshFromData(msg.data);
                 block.Show();
             }
         }
 
-        AllocateBlock(params){
-            const blockParams = {...this.params, ...params};
+        AllocateBlock(params) {
+            const blockParams = {...this.params_, ...params};
             const block = new SparseVoxelCellBlock(blockParams);
 
             block.Hide();
-            this.blocks.push(block);
-            this.RebuildBlock(block);
+
+            this.blocks_.push(block);
+
+            this.RebuildBlock_(block);
+
             return block;
         }
 
-        RebuildBlock(block){
-            if(block.building){
+        RebuildBlock_(block) {
+            if (block.building_) {
                 return;
             }
 
-            const message = {
-                subject: 'buildChunk',
+            const msg = {
+                subject: 'build_chunk',
                 params: {
-                    buildID: block.buildID,
-                    offset: block.params.offset.toArray(),
-                    dimensions: this.params.dimensions.toArray(),
-                    blockTypes: this.params.blockTypes,
-                    currentTime: this.currentTime
-                }
+                    buildId: block.buildId_,
+                    offset: block.params_.offset.toArray(),
+                    dimensions: this.params_.dimensions.toArray(),
+                    blockTypes: this.params_.blockTypes,
+                    currentTime: this.currentTime_,
+                },
             };
 
-            block.building = true;
-            this.workerPool.enqueue(message => {
-                block.building = false;
-                this.OnResult(block, message);
+            // HACK
+            block.building_ = true;
+
+            this.workerPool_.Enqueue(msg, (m) => {
+                block.building_ = false;
+                this.OnResult_(block, m);
             });
         }
 
-        ScheduleDestroy(blocks){
-            this.old.push(...blocks);
+        ScheduleDestroy(blocks) {
+            this.old_.push(...blocks);
         }
 
-        DestroyBlocks(blocks){
-            for(let current of blocks){
-                current.Destroy();
+        DestroyBlocks_(blocks) {
+            for (let c of blocks) {
+                c.Destroy();
             }
         }
 
-        get Busy(){
-           return this.workerPool.Busy;
+        get Busy() {
+            return this.workerPool_.Busy;
         }
 
-        Update(timeElapsed){
-            if(!this.Busy){
-                this.DestroyBlocks(this.old);
-                this.old = [];
+        Update(timeElapsed) {
+            if (!this.Busy) {
+                this.DestroyBlocks_(this.old_);
+                this.old_ = [];
             }
 
-            this.blocks = this.blocks.filter(block => !block.Destroyed);
+            this.blocks_ = this.blocks_.filter(b => !b.Destroyed);
 
-            for(let i=0; i<this.blocks.length; ++i){
-                if(GameDefs.introEnabled){
-                    this.RebuildBlock(this.blocks[i]);
+            for (let i = 0; i < this.blocks_.length; ++i) {
+                if (GameDefs.introEnabled) {
+                    this.RebuildBlock_(this.blocks_[i]);
                 }
 
-                if(this.blocks[i].Dirty){
-                    this.blocks[i].PartialRebuild();
+                if (this.blocks_[i].Dirty) {
+                    this.blocks_[i].PartialRebuild();
                 }
             }
 
-            if(GameDefs.introEnabled){
-                this.currentTime += timeElapsed * GameDefs.introRate;
-            }
-            else{
-                this.currentTime = 2;
+            if (GameDefs.introEnabled) {
+                this.currentTime_ += timeElapsed * GameDefs.INTRO_RATE;
+            } else {
+                this.currentTime_ = 2;
             }
         }
-    }//end voxelBuilderthreaded
-    return{
-        VoxelBuilderThreaded : VoxelBuilderThreaded
+    }
+
+    return {
+        VoxelBuilder_Threaded: VoxelBuilder_Threaded,
     };
 })();

@@ -1,100 +1,109 @@
 import * as THREE from 'three';
-import{entity} from "./Entity.js";
-import{GameDefs} from "./Game-defs.js";
-import{math} from "./Math.js";
-import{voxelShader} from "./voxelShader.js";
 
-export const cloudController = (function(){
-    class CloudController extends entity.Component{
-        static className = 'CloudController';
+import {entity} from './entity.js';
+import {GameDefs} from "./Game-defs.js";
+import {math} from './math.js';
 
-        get Name(){
-            return CloudController.className;
+import {voxel_shader} from './voxelShader.js';
+
+
+export const cloud_controller = (function() {
+
+    class CloudController extends entity.Component {
+        static CLASS_NAME = 'CloudController';
+
+        get NAME() {
+            return CloudController.CLASS_NAME;
         }
 
         constructor() {
             super();
-            this.clouds = [];
+            this.clouds_ = []
         }
 
-        InitEntity(){
+        InitEntity() {
             const threejs = this.FindEntity('renderer').GetComponent('ThreeJSController');
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            this.group = new THREE.Group();
 
-            for(let i =0; i<20; ++i){
-                const width = math.randomInt(5, 10) *20;
-                const length = math.randomInt(5, 10) * 20;
+            const geo = new THREE.BoxGeometry(1, 1, 1);
 
-                const x = math.randomInt(-150, 150) * 10;
-                const y = math.randomInt(0, 0) * 25;
-                const z = math.randomInt(-150, 150) * 10;
+            this.group_ = new THREE.Group();
 
-                const material = new THREE.ShaderMaterial({
+            for (let i = 0; i < 20; ++i) {
+                const w = math.rand_int(5, 10) * 20;
+                const l = math.rand_int(5, 10) * 20;
+
+                const x = math.rand_int(-150, 150) * 10;
+                const y = math.rand_int(0, 10) * 25;
+                const z = math.rand_int(-150, 150) * 10;
+
+                const mat = new THREE.ShaderMaterial({
                     uniforms: {
-                        cloudMin:{
-                            value: null
+                        cloudMin: {
+                            value: null,
                         },
-                        cloudMax:{
-                            value: null
-                        }
+                        cloudMax: {
+                            value: null,
+                        },
                     },
-
-                    vertexShader: voxelShader.CLOUD.vectorShader,
-                    fragmentShader: voxelShader.CLOUD.precisionShader,
+                    vertexShader: voxel_shader.CLOUD.VS,
+                    fragmentShader: voxel_shader.CLOUD.PS,
                     side: THREE.FrontSide,
-                    transparent: true
+                    // blending: THREE.AdditiveBlending,
+                    transparent: true,
                 });
-
-                const box = new THREE.Mesh(geometry, material);
+                const box = new THREE.Mesh(geo, mat);
                 box.position.set(x, y, z);
-                box.scale.set(width, 50, length);
-                this.group.add(box);
-                this.clouds.push(box);
+                box.scale.set(w, 50, l);
+
+                this.group_.add(box);
+                this.clouds_.push(box);
             }
 
-            this.group.visible = !GameDefs.skipClouds;
-            threejs.scene.add(this.group);
-            this.CreateSun();
+            this.group_.visible = !GameDefs.skipClouds;
+
+            threejs.scene_.add(this.group_);
+
+            this.CreateSun_();
         }
 
-        CreateSun(){
-            const geometry = new THREE.PlaneGeometry(300, 300);
+        CreateSun_() {
+            const geo = new THREE.PlaneGeometry(300, 300);
 
-            const material = new THREE.ShaderMaterial({
+            const mat = new THREE.ShaderMaterial({
                 uniforms: {},
-                vertexShader: voxelShader.SUN.vectorShader,
-                fragmentShader: voxelShader.SUN.precisionShader,
+                vertexShader: voxel_shader.SUN.VS,
+                fragmentShader: voxel_shader.SUN.PS,
                 side: THREE.FrontSide,
                 transparent: true,
                 blending: THREE.AdditiveBlending,
             });
-            const sun = new THREE.Mesh(geometry, material);
+            const sun = new THREE.Mesh(geo, mat);
             sun.position.set(692, 39, -286);
             sun.rotateX(0.5 * 2.0 * Math.PI);
             sun.lookAt(0, 0, 0);
-            this.group.add(sun);
+
+            this.group_.add(sun);
         }
 
-        Update(){
+        Update(_) {
             const player = this.FindEntity('player');
             const cameraPosition = player.Position;
 
-            this.group.position.set(cameraPosition.x, 250, cameraPosition.z);
+            this.group_.position.set(cameraPosition.x, 250, cameraPosition.z);
 
-            for(let i =0; i<this.clouds.length; ++i){
-                const cloud = this.clouds[i];
+            for (let i = 0; i < this.clouds_.length; ++i) {
+                const cloud = this.clouds_[i];
                 cloud.updateMatrixWorld(true);
-                const material = cloud.material;
-                material.uniforms.cloudMin.value = new THREE.Vector3(-0.5, -0.5, -0.5);
-                material.uniforms.cloudMax.value = new THREE.Vector3(0.5, 0.5, 0.5);
-                material.uniforms.cloudMin.value.applyMatrix4(cloud.matrixWorld);
-                material.uniforms.cloudMax.value.applyMatrix4(cloud.matrixWorld);
+                const mat = cloud.material;
+                mat.uniforms.cloudMin.value = new THREE.Vector3(-0.5, -0.5, -0.5);
+                mat.uniforms.cloudMax.value = new THREE.Vector3(0.5, 0.5, 0.5);
+                mat.uniforms.cloudMin.value.applyMatrix4(cloud.matrixWorld);
+                mat.uniforms.cloudMax.value.applyMatrix4(cloud.matrixWorld);
             }
         }
     }
 
     return {
-        CloudController:CloudController
+        CloudController: CloudController
     };
 })();

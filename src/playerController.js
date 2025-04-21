@@ -1,170 +1,173 @@
-import * as THREE from "three";
-import {PointerLockControls} from "three/examples/jsm/controls/PointerLockControls.js";
-import {entity} from "./Entity.js";
-import {GameDefs} from "./Game-defs.js";
+import * as THREE from 'three';
+import {PointerLockControls} from 'three/examples/jsm/controls/PointerLockControls.js';
+import {entity} from './entity.js';
 
-export const playerController = (() => {
+import {GameDefs} from "./game-defs.js";
 
+
+export const player_controller = (() => {
+
+    // FPSControls was adapted heavily from a threejs example. Movement control
+    // and collision detection was completely rewritten, but credit to original
+    // class for the setup code.
     class PlayerController extends entity.Component {
-        static className = 'PlayerController';
+        static CLASS_NAME = 'PlayerController';
 
-        get Name(){
-            return PlayerController.className;
+        get NAME() {
+            return PlayerController.CLASS_NAME;
         }
 
         constructor() {
             super();
         }
 
-        InitEntity(){
-            this.radius = 1.5;
-            this.keys = {
+        InitEntity() {
+            this.radius_ = 1.5;
+            this.keys_ = {
                 forward: false,
                 backward: false,
                 left: false,
-                right: false
+                right: false,
             };
-
             this.standing = true;
-            //todo change velocity and acc/dec
-            this.velocity = new THREE.Vector3(0, 0, 0);
-            this.decceleration = new THREE.Vector3(-10, -9.8*5, -10);
-            this.acceleration = new THREE.Vector3(75, 20, 75);
-            this.acceleration = new THREE.Vector3(200, 25, 200);
+            this.velocity_ = new THREE.Vector3(0, 0, 0);
+            this.decceleration_ = new THREE.Vector3(-10, -9.8 * 5, -10);
+            this.acceleration_ = new THREE.Vector3(75, 20, 75);
+
+            // this.decceleration_ = new THREE.Vector3(-10, -9.8 * 2, -10);
+            this.acceleration_ = new THREE.Vector3(200, 25, 200);
 
             const threejs = this.FindEntity('renderer').GetComponent('ThreeJSController');
-            this.element = threejs.threejs.domElement;
-            this.camera = threejs.camera;
-            this.SetupPointerLock();
+            this.element_ = threejs.threejs_.domElement;
+            this.camera_ = threejs.camera_;
 
-            this.controls = new PointerLockControls(this.camera, document.body);
-            threejs.scene.add(this.controls.getObject());
+            this.SetupPointerLock_();
 
-            if(GameDefs.enabled){
-                this.controls.getObject().position.set(...GameDefs.playerPOS);
-                this.controls.getObject().position.set(...GameDefs.playerROT);
-                this.decceleration = new THREE.Vector3(...GameDefs.cameraDeceleration);
+            this.controls_ = new PointerLockControls(this.camera_, document.body);
+            threejs.scene_.add(this.controls_.getObject());
+
+            // HACK
+            if (GameDefs.enabled) {
+                this.controls_.getObject().position.set(...GameDefs.PLAYER_POS);
+                this.controls_.getObject().quaternion.set(...GameDefs.PLAYER_ROT);
+                this.decceleration_ = new THREE.Vector3(...GameDefs.CAMERA_DECCELERATION);
             }
 
-            this.controls.getObject().position.copy(this.Parent.Position);
+            this.controls_.getObject().position.copy(this.Parent.Position);
 
-            document.addEventListener('keydown', (event) => this.OnKeyDown(event), false);
-            document.addEventListener('keyup', (event) => this.OnKeyUp(event), false);
+            document.addEventListener('keydown', (e) => this.OnKeyDown_(e), false);
+            document.addEventListener('keyup', (e) => this.OnKeyUp_(e), false);
+            // document.addEventListener('mouseup', (e) => this._onMouseUp(e), false);
         }
 
-        OnKeyDown(event){
-            switch (event.keyCode){
-                case 38: //up arrow
-                case 87: // w key
-                    this.keys.forward = true;
+        OnKeyDown_(event) {
+            switch (event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    this.keys_.forward = true;
                     break;
-
-                case 37: //left arrow
-                case 65: // a key
-                    this.keys.left = true;
+                case 37: // left
+                case 65: // a
+                    this.keys_.left = true;
                     break;
-
-                case 40: //down arrow
-                case 83: // s key
-                    this.keys.backward = true;
+                case 40: // down
+                case 83: // s
+                    this.keys_.backward = true;
                     break;
-
-                case 39: //right arrow
-                case 68: //d key
-                    this.keys.right = true;
+                case 39: // right
+                case 68: // d
+                    this.keys_.right = true;
                     break;
-
-                case 32: //space
-                    if(this.standing){
-                        this.velocity.y = -this.acceleration.y;
+                case 32: // space
+                    if (this.standing) {
+                        this.velocity_.y = this.acceleration_.y;
                         this.standing = false;
                     }
                     break;
             }
         }
 
-        OnKeyUp(event){
-            switch (event.keyCode){
-                case 38: //up arrow
-                case 87: // w key
-                    this.keys.forward = false;
+        OnKeyUp_(event) {
+            switch(event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    this.keys_.forward = false;
                     break;
-
-                case 37: //left arrow
-                case 65: // a key
-                    this.keys.left = false;
+                case 37: // left
+                case 65: // a
+                    this.keys_.left = false;
                     break;
-
-                case 40: //down arrow
-                case 83: // s key
-                    this.keys.backward = false;
+                case 40: // down
+                case 83: // s
+                    this.keys_.backward = false;
                     break;
-
-                case 39: //right arrow
-                case 68: //d key
-                    this.keys.right = false;
+                case 39: // right
+                case 68: // d
+                    this.keys_.right = false;
                     break;
-
-                case 84: // t key
-                    this.OnCycleTools();
+                case 79: // o
+                    // this.OnCycleTextures_(-1);
                     break;
-
-                case 219: // [ key
-                    this.OnCycleTextures(-1);
+                case 80: // p
+                    // this.OnCycleTextures_(1);
                     break;
-
-                case 221: // ] key
-                    this.OnCycleTextures(1);
+                case 84: // t
+                    this.OnCycleTools_();
                     break;
-
-                case 189: // - key
-                    this.cells.ChangeActiveTool(-1);
+                case 219: // [
+                    this.OnCycleTextures_(-1);
                     break;
-
-                case 187: // = key
-                    this.cells.ChangeActiveTool(1);
+                case 221: //
+                    this.OnCycleTextures_(1);
                     break;
-
-                case 13: //enter key
-                    this.keys.enter = true;
+                // case 33: // PG_UP
+                //   this.cells_.ChangeActiveTool(1);
+                //   break;
+                // case 34: // PG_DOWN
+                // this.cells_.ChangeActiveTool(-1);
+                //   break;
+                case 13: // enter
+                    this.keys_.enter = true;
                     break;
             }
         }
 
-        OnMouseUp(event){
-            this.keys.enter = true;
+        _onMouseUp(event) {
+            this.keys_.enter = true;
         }
 
-        SetupPointerLock(){
-            const hasPointerLock = ('pointerLockElement' in document ||  'mozPointerLockElement' in document || 'webkitPointerLockElement' in document);
-
-            if(hasPointerLock){
+        SetupPointerLock_() {
+            const hasPointerLock = (
+                'pointerLockElement' in document ||
+                'mozPointerLockElement' in document ||
+                'webkitPointerLockElement' in document);
+            if (hasPointerLock) {
                 const lockChange = (event) => {
-                    if(document.pointerLockElement === document.body|| document.mozPointerLockElement === document.body || document.webkitPointerLockElement === document.body){
-                        this.enabled = ture;
-                        this.controls.enabled = true;
-                    }
-                    else{
-                        this.controls.enabled = false;
+                    if (document.pointerLockElement === document.body ||
+                        document.mozPointerLockElement === document.body ||
+                        document.webkitPointerLockElement === document.body ) {
+                        this.enabled_ = true;
+                        this.controls_.enabled = true;
+                    } else {
+                        this.controls_.enabled = false;
                     }
                 };
-
                 const lockError = (event) => {
-                    console.log("lockError", event);
+                    console.log(event);
                 };
 
                 document.addEventListener('pointerlockchange', lockChange, false);
                 document.addEventListener('webkitpointerlockchange', lockChange, false);
-                document.addEventListener('onpointerlockchange', lockChange, false);
+                document.addEventListener('mozpointerlockchange', lockChange, false);
                 document.addEventListener('pointerlockerror', lockError, false);
-                document.addEventListener('onpointerlockerror', lockError, false);
+                document.addEventListener('mozpointerlockerror', lockError, false);
                 document.addEventListener('webkitpointerlockerror', lockError, false);
 
-                this.element.addEventListener('click', (event) => {
-                    document.body.requestPointerLock(document.body.requestPointerLock ||
+                this.element_.addEventListener('click', (event) => {
+                    document.body.requestPointerLock = (
+                        document.body.requestPointerLock ||
                         document.body.mozRequestPointerLock ||
-                        document.body.webkitRequestPointerLock
-                    );
+                        document.body.webkitRequestPointerLock);
 
                     if (/Firefox/i.test(navigator.userAgent)) {
                         const fullScreenChange = (event) => {
@@ -186,35 +189,38 @@ export const playerController = (() => {
                             document.body.mozRequestFullScreen ||
                             document.body.webkitRequestFullscreen);
                         document.body.requestFullscreen();
-                    }
-                    else {
+                    } else {
                         document.body.requestPointerLock();
                     }
                 }, false);
-            }//end pointerlock if stmt
-        }//end setupPointerlock
+            }
+        }
 
-        FindIntersections(boxes, position){
-            const sphere = new THREE.Sphere(position, this.radius);
-            return boxes.filter(b => {
+        _FindIntersections(boxes, position) {
+            const sphere = new THREE.Sphere(position, this.radius_);
+
+            const intersections = boxes.filter(b => {
                 return sphere.intersectsBox(b);
             });
+
+            return intersections;
         }
 
-        OnCycleTools(){
+        OnCycleTools_() {
             const ui = this.FindEntity('ui').GetComponent('UIController');
-            ui.CycleTool();
+            ui.CycleTool_();
         }
 
-        OnCycleTextures(directory){
+        OnCycleTextures_(dir) {
             const ui = this.FindEntity('ui').GetComponent('UIController');
-            ui.CycleBuildIcon(directory);
+            ui.CycleBuildIcon_(dir);
         }
 
-        Update(timeInSeconds){
-            const controlObject = this.controls.getObject();
+        Update(timeInSeconds) {
+            const controlObject = this.controls_.getObject();
+
             const demo = false;
-            if(demo){
+            if (demo) {
                 controlObject.position.x += timeInSeconds * 5;
                 controlObject.position.z += timeInSeconds * 5;
                 this.Parent.SetPosition(controlObject.position);
@@ -223,64 +229,69 @@ export const playerController = (() => {
                 return;
             }
 
-            if(this.keys.enter){
-                this.Broadcast({topic: 'input.pressed', value:'enter'});
+            if (this.keys_.enter) {
+                this.Broadcast({topic: 'input.pressed', value: 'enter'});
             }
 
-            this.keys.enter = false;
-            const velocity = this.velocity;
-            const frameDeceleration = new THREE.Vector3(
-                this.velocity.x * this.decceleration,
-                this.decceleration.y,
-                this.velocity.z * this.decceleration.z
+            this.keys_.enter = false;
+
+            const velocity = this.velocity_;
+            const frameDecceleration = new THREE.Vector3(
+                this.velocity_.x * this.decceleration_.x,
+                this.decceleration_.y,
+                this.velocity_.z * this.decceleration_.z
             );
 
-            frameDeceleration.multiplyScalar(timeInSeconds);
-            frameDeceleration.z = Math.sign(frameDeceleration.z) * Math.min(Math.abs(frameDeceleration.z), Math.abs(velocity.z));
+            frameDecceleration.multiplyScalar(timeInSeconds);
+            frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
+                Math.abs(frameDecceleration.z), Math.abs(velocity.z));
 
-            if(GameDefs.skipGravity){
-                frameDeceleration.y = Math.sign(frameDeceleration.y) * Math.min(Math.abs(frameDeceleration.y), Math.abs(velocity.y));
+            if (GameDefs.skipGravity) {
+                frameDecceleration.y = Math.sign(frameDecceleration.y) * Math.min(
+                    Math.abs(frameDecceleration.y), Math.abs(velocity.y));
             }
-//todo fix gravity and make it stronger so that im not bouncing around
-            this.velocity.add(frameDeceleration);
+            this.velocity_.add(frameDecceleration);
 
-            if(!GameDefs.skipGravity){
-                this.velocity.y = Math.max(this.velocity.y, -50);
-            }
-
-            if(this.keys.forward){
-                this.velocity.z -= this.acceleration.z * timeInSeconds;
-            }
-            if(this.keys.backward){
-                this.velocity.z += this.acceleration.z * timeInSeconds;
+            // Gravity
+            if (!GameDefs.skipGravity) {
+                this.velocity_.y = Math.max(this.velocity_.y, -50);
             }
 
-            if(this.keys.left){
-                this.velocity.x -= this.acceleration.x * timeInSeconds;
+
+            if (this.keys_.forward) {
+                this.velocity_.z -= this.acceleration_.z * timeInSeconds;
             }
-            if(this.keys.right){
-                this.velocity.x += this.acceleration.x * timeInSeconds;
+            if (this.keys_.backward) {
+                this.velocity_.z += this.acceleration_.z * timeInSeconds;
+            }
+            if (this.keys_.left) {
+                this.velocity_.x -= this.acceleration_.x * timeInSeconds;
+            }
+            if (this.keys_.right) {
+                this.velocity_.x += this.acceleration_.x * timeInSeconds;
             }
 
-            const voxelManager = this.FindEntity('voxelss').GetComponent('SparseVoxelCellManager');
-            const voxelList = voxelManager.FindVoxelsNear(controlObject.position, 3).filter(v => v.type != 'ocean');
+            const voxelManager = this.FindEntity('voxels').GetComponent('SparseVoxelCellManager');
+            const voxelList = voxelManager.FindVoxelsNear(
+                controlObject.position, 3).filter(v => v.type != 'ocean');
 
-            const AsAABB = (v) => {
-                const position = new THREE.Vector3(v.position[0], v.position[1], v.position[2]);
+            const AsAABB_ = (v) => {
+                const position = new THREE.Vector3(
+                    v.position[0], v.position[1], v.position[2]);
                 const half = new THREE.Vector3(0.5, 0.5, 0.5);
 
-                const mesh1 = new THREE.Vector3();
-                mesh1.copy(position);
-                mesh1.sub(half);
+                const m1 = new THREE.Vector3();
+                m1.copy(position);
+                m1.sub(half);
 
-                const mesh2 = new THREE.Vector3();
-                mesh2.copy(position);
-                mesh2.sub(half);
+                const m2 = new THREE.Vector3();
+                m2.copy(position);
+                m2.add(half);
 
-                return new THREE.Box3(mesh1, mesh2);
+                return new THREE.Box3(m1, m2);
             }
+            const boxes = voxelList.map(v => AsAABB_(v));
 
-            const boxes = voxelList.map(v => AsAABB(v));
             const oldPosition = new THREE.Vector3();
             oldPosition.copy(controlObject.position);
 
@@ -289,43 +300,43 @@ export const playerController = (() => {
             forward.y = 0;
             forward.normalize();
 
-
             const sideways = new THREE.Vector3(1, 0, 0);
             sideways.applyQuaternion(controlObject.quaternion);
             sideways.normalize();
 
-            sideways.multiplyScalar(this.velocity.x * timeInSeconds);
-            forward.multiplyScalar(this.velocity.z * timeInSeconds);
+            sideways.multiplyScalar(this.velocity_.x * timeInSeconds);
+            forward.multiplyScalar(this.velocity_.z * timeInSeconds);
 
-            const alreadyIntersecting = this.FindIntersections(boxes, controlObject.position).length > 0;
+            const alreadyIntersecting = this._FindIntersections(
+                boxes, controlObject.position).length > 0;
 
             controlObject.position.add(forward);
             controlObject.position.add(sideways);
 
-            let intersections = this.FindIntersections(boxes, controlObject.position);
-
-            if(intersections.length > 0 && !alreadyIntersecting){
+            let intersections = this._FindIntersections(
+                boxes, controlObject.position);
+            if (intersections.length > 0 && !alreadyIntersecting) {
                 controlObject.position.copy(oldPosition);
             }
 
             oldPosition.copy(controlObject.position);
-            const stepSize = 0.01;
-            let timeAcc = stepSize;
-
-            while(timeAcc < timeInSeconds){
-                controlObject.position.y += this.velocity.y * timeAcc;
-                intersections = this.FindIntersections(boxes, controlObject.position);
-                if(intersections.length > 0){
+            const _STEP_SIZE = 0.01;
+            let timeAcc = _STEP_SIZE;
+            while (timeAcc < timeInSeconds) {
+                controlObject.position.y += this.velocity_.y * timeAcc;
+                intersections = this._FindIntersections(boxes, controlObject.position);
+                if (intersections.length > 0) {
                     controlObject.position.copy(oldPosition);
-                    this.velocity.y = Math.max(0, this.velocity.y);
+
+                    this.velocity_.y = Math.max(0, this.velocity_.y);
                     this.standing = true;
                     break;
                 }
-                timeAcc = Math.min(timeAcc + stepSize, timeInSeconds);
+                timeAcc = Math.min(timeAcc + _STEP_SIZE, timeInSeconds);
             }
 
-            if(controlObject.position.y < -100){
-                this.velocity.y = 0;
+            if (controlObject.position.y < -100) {
+                this.velocity_.y = 0;
                 controlObject.position.y = 250;
                 this.standing = true;
             }
@@ -333,9 +344,9 @@ export const playerController = (() => {
             this.Parent.SetPosition(controlObject.position);
             this.Parent.SetQuaternion(controlObject.quaternion);
         }
-    }
+    };
 
-    return{
-        PlayerController: PlayerController
+    return {
+        PlayerController: PlayerController,
     };
 })();

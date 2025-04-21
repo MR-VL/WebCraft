@@ -1,71 +1,72 @@
-export const workerPool = (() => {
-    let ids = 0;
+export const worker_pool = (() => {
 
-    class WorkerThread{
-        constructor(){
-            this.worker = new Worker(new URL('/src/voxelBuilderThreadedWorker.js', import.meta.url), {type: 'module'});
-            this.worker.onmessage = (event) => {
-                this.OnMessage(event);
+    let _IDS = 0;
+
+    class WorkerThread {
+        constructor() {
+            this.worker_ = new Worker(new URL('/src/voxel-builder-threaded-worker.js', import.meta.url), {type: 'module'});
+            this.worker_.onmessage = (e) => {
+                this._OnMessage(e);
             };
-            this.resolve = null;
-            this.id_ = ids++;
+            this.resolve_ = null;
+            this.id_ = _IDS++;
         }
 
-        OnMessage(event){
-            const resolve = this.resolve;
-            this.resolve = null;
-            resolve(event.data);
+        _OnMessage(e) {
+            const resolve = this.resolve_;
+            this.resolve_ = null;
+            resolve(e.data);
         }
 
-        get id(){
+        get id() {
             return this.id_;
         }
 
-        postMessage(message, resolve){
-            this.resolve = resolve;
-            this.worker.postMessage(message);
+        postMessage(s, resolve) {
+            this.resolve_ = resolve;
+            this.worker_.postMessage(s);
         }
     }
 
-    class WorkerPool{
-        constructor(size){
-            this.workers = [...Array(size)].map(_ => new WorkerThread());
-            this.free = [...this.workers];
-            this.busy = {};
-            this.queue = [];
+    class WorkerPool {
+        constructor(sz) {
+            this.workers_ = [...Array(sz)].map(_ => new WorkerThread());
+            this.free_ = [...this.workers_];
+            this.busy_ = {};
+            this.queue_ = [];
         }
 
-        get length(){
-            return this.workers.length;
+        get length() {
+            return this.workers_.length;
         }
 
-        get Busy(){
-            return this.queue.length > 0 || Object.keys(this.busy).length >0;
+        get Busy() {
+            return this.queue_.length > 0 || Object.keys(this.busy_).length > 0;
         }
 
-        enqueue(workItem, resolve){
-            this.queue.push([workItem, resolve]);
-            this.pumpQueue();
+        Enqueue(workItem, resolve) {
+            this.queue_.push([workItem, resolve]);
+            this.PumpQueue_();
         }
 
-        pumpQueue(){
-            while(this.free.length>0 && this.queue.length > 0){
-                const current = this.free.pop();
-                this.busy[current.id] = current;
+        PumpQueue_() {
+            while (this.free_.length > 0 && this.queue_.length > 0) {
+                const w = this.free_.pop();
+                this.busy_[w.id] = w;
 
-                const [workItem, workResolve] = this.queue.shift();
+                const [workItem, workResolve] = this.queue_.shift();
 
-                current.postMessage(workItem, (version) => {
-                    delete this.busy[current.id];
-                    this.free.push(current);
-                    workResolve(version);
-                    this.pumpQueue();
+                w.postMessage(workItem, (v) => {
+                    delete this.busy_[w.id];
+                    this.free_.push(w);
+                    workResolve(v);
+                    this.PumpQueue_();
                 });
             }
         }
     }
 
-    return{
-        WorkerPool: WorkerPool
+    return {
+        WorkerPool: WorkerPool,
     };
 })();

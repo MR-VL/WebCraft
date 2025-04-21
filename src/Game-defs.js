@@ -1,19 +1,22 @@
-export const GameDefs= (()=>{
-    const Intro={
+
+
+export const GameDefs = (() => {
+
+    const _INTRO = {
         enabled: false,
         foliageEnabled: false,
         introEnabled: false,
         oceanEnabled: false,
         hardcodedFoliageEnabled: true,
-        playerPOS: [-1826.1306923527645, 27.940844444445403, -220.6986696117536],
-        playerROT: [-0.0380279893805328, 0.3364980691628503, 0.013601301436886065, 0.9408176901358577],
-        cameraPOS: [-2150, -557],
-        cameraDeceleration: [-10, 0, -10],
-        introRate: 0.0005,
-        worldSize: 24
-    }
+        PLAYER_POS: [-1826.1306923527645, 27.940844444445403, -220.6986696117536],
+        PLAYER_ROT: [-0.0380279893805328, 0.3364980691628503, 0.013601301436886065, 0.9408176901358577],
+        CAMERA_POS: [-2150, -557],
+        CAMERA_DECCELERATION: [-10, 0, -10],
+        INTRO_RATE: 0.0005,
+        WORLD_SIZE: 24
+    };
 
-    return{
+    return {
         enabled: false,
         foliageEnabled: true,
         hardcodedFoliageEnabled: false,
@@ -29,14 +32,13 @@ export const GameDefs= (()=>{
         useFlatTerrain: false,
         showTools: true,
         fixedTerrainOrigin: false,
+        PLAYER_POS: [-1826.1306923527645, 27.940844444445403, -220.6986696117536],
+        PLAYER_ROT: [-0.0380279893805328, 0.3364980691628503, 0.013601301436886065, 0.9408176901358577],
+        CAMERA_POS: [0, 0],
+        CAMERA_DECCELERATION: [-10, 0, -10],
+        INTRO_RATE: 0.0005,
+        WORLD_BLOCK_SIZE: 16,
+        WORLD_SIZE: 24
+    };
 
-
-        playerPOS: [-1826.1306923527645, 27.940844444445403, -220.6986696117536],
-        playerROT: [-0.0380279893805328, 0.3364980691628503, 0.013601301436886065, 0.9408176901358577],
-        cameraPOS: [0, 0],
-        cameraDeceleration: [-10, 0, -10],
-        introRate: 0.0005,
-        worldBlockSize: 16,
-        worldSize: 24
-    }
 })();
