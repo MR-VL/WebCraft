@@ -1,6 +1,6 @@
 import {entity} from "./Entity.js";
 import {textureDefs} from "./textureDefs.js";
-import {GameDefs} from "./Game-Defs.js";
+import {GameDefs} from "./Game-defs.js";
 
 export const uiController = (() => {
     class UIController extends entity.Component{

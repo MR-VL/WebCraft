@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import{entity} from "./Entity.js";
 import{GameDefs} from "./Game-defs.js";
-import{math} from "./Math.js";
+import{math} from "./math.js";
 import{voxelShader} from "./voxelShader.js";
 
 export const cloudController = (function(){
